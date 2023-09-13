@@ -5,9 +5,16 @@ on:
 name: OCaml CI
 
 jobs:
-  ocaml:
+  prepare:
+    name: Install Extism Runtime
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/libextism
+  test:
     name: OCaml
     runs-on: ${{ matrix.os }}
+    needs: prepare
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -16,7 +23,18 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-      - uses: ./.github/actions/extism
+      - name: Download libextism.so
+        uses: actions/download-artifact@v2
+        with:
+          name: libextism-so-artifact
+      - name: Download libextism.h
+        uses: actions/download-artifact@v2
+        with:
+          name: libextism-h-artifact
+      - name: Move the files because download can't sudo
+        run: |
+          sudo mv libextism.* /usr/local/lib/
+          sudo mv extism.h /usr/local/include/
       - name: Setup OCaml env
         uses: ocaml/setup-ocaml@v2
         with:
@@ -27,6 +45,5 @@ jobs:
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune build
       - name: Test OCaml Host SDK
         run: |
-          opam install -y --deps-only .
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune exec ./bin/main.exe ../wasm/code.wasm count_vowels -- --input "qwertyuiop"
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune runtest
