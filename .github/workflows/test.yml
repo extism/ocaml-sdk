@@ -7,7 +7,10 @@ name: OCaml CI
 jobs:
   prepare:
     name: Install Extism Runtime
-    runs-on: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/libextism
