@@ -20,6 +20,7 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           dune-cache: true
+          ocaml-compiler: "5.x"
 
       - name: Deploy odoc to GitHub Pages
         uses: ocaml/setup-ocaml/deploy-doc@v2
