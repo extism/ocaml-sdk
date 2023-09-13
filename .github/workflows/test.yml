@@ -12,9 +12,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: ./.github/actions/libextism
       - name: Checkout sources
         uses: actions/checkout@v3
+      - uses: ./.github/actions/libextism
       - name: Setup OCaml env
         uses: ocaml/setup-ocaml@v2
         with:
