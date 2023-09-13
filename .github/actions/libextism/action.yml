@@ -9,6 +9,7 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: extism/extism
+        path: runtime
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -25,8 +26,11 @@ runs:
     - name: Build
       if: steps.cache-libextism.outputs.cache-hit != 'true'
       shell: bash
-      run: cargo build --release -p libextism
+      run: |
+        cd runtime
+        cargo build --release -p libextism
     - name: Install extism shared library
       shell: bash
       run: |
+        cd runtime
         sudo make install
