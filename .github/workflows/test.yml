@@ -47,5 +47,5 @@ jobs:
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune build
       - name: Test OCaml Host SDK
         run: |
-          LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune exec ./bin/main.exe ../wasm/code.wasm count_vowels -- --input "qwertyuiop"
+          LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune exec ./bin/main.exe wasm/code.wasm count_vowels -- --input "qwertyuiop"
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune runtest
