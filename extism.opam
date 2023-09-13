@@ -6,9 +6,9 @@ maintainer: ["Extism Authors <oss@extism.org>"]
 authors: ["Extism Authors <oss@extism.org>"]
 license: "BSD-3-Clause"
 tags: ["topics" "wasm" "plugin"]
-homepage: "https://github.com/extism/extism"
-doc: "https://github.com/extism/extism"
-bug-reports: "https://github.com/extism/extism/issues"
+homepage: "https://github.com/extism/ocaml-sdk"
+doc: "https://github.com/extism/ocaml-sdk"
+bug-reports: "https://github.com/extism/ocaml-sdk/issues"
 depends: [
   "ocaml" {>= "4.14.1"}
   "dune" {>= "3.2"}
@@ -36,6 +36,6 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/extism/extism.git"
+dev-repo: "git+https://github.com/extism/ocaml-sdk.git"
 build-env: [EXTISM_TEST_NO_LIB = ""]
 post-messages: ["See https://extism.org/docs/install/ for information about installing libextism"]

@@ -5,7 +5,7 @@
 (generate_opam_files true)
 
 (source
- (github extism/extism))
+ (github extism/ocaml-sdk))
 
 (authors "Extism Authors <oss@extism.org>")
 
@@ -13,7 +13,7 @@
 
 (license BSD-3-Clause)
 
-(documentation https://github.com/extism/extism)
+(documentation https://github.com/extism/ocaml-sdk)
 
 (package
  (name extism)
