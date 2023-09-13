@@ -7,7 +7,7 @@ name: OCaml CI
 jobs:
   prepare:
     name: Install Extism Runtime
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/libextism
@@ -18,8 +18,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rust:
-          - stable
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
