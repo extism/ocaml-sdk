@@ -225,3 +225,5 @@ module Plugin : sig
 end
 
 val with_plugin : (Plugin.t -> 'a) -> Plugin.t -> 'a
+(** Create a Plugin that can be used within the scope of the provided callback, it will
+    automatically be freed when the function returns *)
