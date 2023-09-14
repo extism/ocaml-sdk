@@ -1,12 +1,11 @@
 module Manifest = Extism_manifest
 
-type t =
-  | Plugin of {
-      mutable pointer : unit Ctypes.ptr;
-      mutable functions : Function.t list;
-    }
+type t = {
+  mutable pointer : unit Ctypes.ptr;
+  mutable functions : Function.t list;
+}
 
-let set_config (Plugin plugin) = function
+let set_config plugin = function
   | None -> true
   | Some config ->
       let config =
@@ -15,8 +14,9 @@ let set_config (Plugin plugin) = function
       Bindings.extism_plugin_config plugin.pointer config
         (Unsigned.UInt64.of_int (String.length config))
 
-let free (Plugin t) =
+let free t =
   if not (Ctypes.is_null t.pointer) then
+    let () = print_endline "AAA" in
     let () = Bindings.extism_plugin_free t.pointer in
     t.pointer <- Ctypes.null
 
@@ -53,7 +53,7 @@ let create ?config ?(wasi = false) ?(functions = []) wasm =
     let s = get_errmsg (Ctypes.( !@ ) errmsg) in
     Error (`Msg s)
   else
-    let t = Plugin { pointer; functions } in
+    let t = { pointer; functions } in
     let () = Gc.finalise_last (fun () -> free t) t in
     if not (set_config t config) then Error (`Msg "call to set_config failed")
     else Ok t
@@ -68,7 +68,7 @@ let%test "free plugin" =
   free plugin;
   true
 
-let call' f (Plugin { pointer; _ }) ~name input len =
+let call' f { pointer; _ } ~name input len =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else
     let rc = f pointer name input len in
@@ -133,7 +133,7 @@ let%test "call_functions" =
   Gc.full_major ();
   b
 
-let function_exists (Plugin { pointer; _ }) name =
+let function_exists { pointer; _ } name =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else Bindings.extism_plugin_function_exists pointer name
 
@@ -149,11 +149,11 @@ module Cancel_handle = struct
   let cancel { inner } = Bindings.extism_plugin_cancel inner
 end
 
-let cancel_handle (Plugin { pointer; _ }) =
+let cancel_handle { pointer; _ } =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else Cancel_handle.{ inner = Bindings.extism_plugin_cancel_handle pointer }
 
-let id (Plugin { pointer; _ }) =
+let id { pointer; _ } =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else
     let id = Bindings.extism_plugin_id pointer in
