@@ -2,6 +2,10 @@
 
 Extism Host SDK for OCaml
 
+## Documentation
+
+Documentation is available at [https://extism.github.io/ocaml-sdk](https://extism.github.io/ocaml-sdk)
+
 ## Installation
 
 First, [install the Extism runtime](https://extism.org/docs/install/).
