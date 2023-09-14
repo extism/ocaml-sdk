@@ -1,0 +1,30 @@
+on: 
+  pull_request:
+  workflow_dispatch:
+
+name: OCaml CI
+
+jobs:
+  test:
+    name: OCaml
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/libextism
+      - name: Setup OCaml env
+        uses: ocaml/setup-ocaml@v2
+        with:
+          dune-cache: true
+          ocaml-compiler: "5.x"
+      - name: Build OCaml Host SDK
+        run: |
+          opam install -y --deps-only .
+          LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune build
+      - name: Test OCaml Host SDK
+        run: |
+          LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune exec ./bin/main.exe wasm/code.wasm count_vowels -- --input "qwertyuiop"
+          LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune runtest
