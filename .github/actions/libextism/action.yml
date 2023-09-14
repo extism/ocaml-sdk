@@ -22,7 +22,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: target/**
-        key: ${{ runner.os }}-libextism-${{ hashFiles('runtime/**') }}-${{ hashFiles('manifest/**') }}-${{ hashFiles('libextism/**') }}
+        key: ${{ runner.os }}-libextism-${{ hashFiles('runtime/**') }}
     - name: Build
       if: steps.cache-libextism.outputs.cache-hit != 'true'
       shell: bash
