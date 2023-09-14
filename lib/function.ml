@@ -39,7 +39,7 @@ let create name ?namespace ~params ~results ~user_data f =
     Option.iter (Bindings.extism_function_set_namespace pointer) namespace
   in
   let t = { pointer; user_data; name } in
-  Gc.finalise free t;
+  Gc.finalise_last (fun () -> free t) t;
   t
 
 let with_namespace f ns =

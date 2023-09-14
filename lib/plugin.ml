@@ -16,6 +16,7 @@ let set_config plugin = function
 
 let free t =
   if not (Ctypes.is_null t.pointer) then
+    let () = print_endline "AAA" in
     let () = Bindings.extism_plugin_free t.pointer in
     t.pointer <- Ctypes.null
 
@@ -53,10 +54,9 @@ let create ?config ?(wasi = false) ?(functions = []) wasm =
     Error (`Msg s)
   else
     let t = { pointer; functions } in
+    let () = Gc.finalise_last (fun () -> free t) t in
     if not (set_config t config) then Error (`Msg "call to set_config failed")
-    else
-      let () = Gc.finalise free t in
-      Ok t
+    else Ok t
 
 let of_manifest ?wasi ?functions manifest =
   let data = Manifest.to_json manifest in
@@ -125,8 +125,13 @@ let%test "call_functions" =
   let functions = [ hello_world ] in
   let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
   let plugin = of_manifest manifest ~functions ~wasi:true |> Error.unwrap in
-  call plugin ~name:"count_vowels" "this is a test"
-  |> Error.unwrap = "{\"count\": 4}"
+  let b =
+    call plugin ~name:"count_vowels" "this is a test"
+    |> Error.unwrap = "{\"count\": 4}"
+  in
+  Gc.minor ();
+  Gc.full_major ();
+  b
 
 let function_exists { pointer; _ } name =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
