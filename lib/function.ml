@@ -1,22 +1,25 @@
 open Ctypes
 
 type t = {
+  free_lock : Mutex.t;
   mutable pointer : unit ptr;
   mutable user_data : unit ptr;
   name : string;
 }
 
 let free t =
-  let () =
-    if not (is_null t.user_data) then
-      let () = Root.release t.user_data in
-      t.user_data <- null
-  in
-  if not (is_null t.pointer) then
-    let () = Bindings.extism_function_free t.pointer in
-    t.pointer <- null
-
-let free_all l = List.iter free l
+  let () = Mutex.lock t.free_lock in
+  Fun.protect
+    ~finally:(fun () -> Mutex.unlock t.free_lock)
+    (fun () ->
+      let () =
+        if not (is_null t.user_data) then
+          let () = Root.release t.user_data in
+          t.user_data <- null
+      in
+      if not (is_null t.pointer) then
+        let () = Bindings.extism_function_free t.pointer in
+        t.pointer <- null)
 
 let create name ?namespace ~params ~results ~user_data f =
   let inputs = CArray.of_list Bindings.Extism_val_type.t params in
@@ -25,11 +28,11 @@ let create name ?namespace ~params ~results ~user_data f =
   let n_outputs = Unsigned.UInt64.of_int (CArray.length outputs) in
   let free' = Some Root.release in
   let user_data = Root.create user_data in
-  let f current inputs n_inputs outputs n_outputs user_data =
+  let f pointer inputs n_inputs outputs n_outputs user_data =
     let user_data = Root.get user_data in
-    let inputs = CArray.from_ptr inputs (Unsigned.UInt64.to_int n_inputs) in
-    let outputs = CArray.from_ptr outputs (Unsigned.UInt64.to_int n_outputs) in
-    f current inputs outputs user_data
+    let params = CArray.from_ptr inputs (Unsigned.UInt64.to_int n_inputs) in
+    let results = CArray.from_ptr outputs (Unsigned.UInt64.to_int n_outputs) in
+    f { Host_function.pointer; params; results } user_data
   in
   let pointer =
     Bindings.extism_function_new name (CArray.start inputs) n_inputs
@@ -38,7 +41,7 @@ let create name ?namespace ~params ~results ~user_data f =
   let () =
     Option.iter (Bindings.extism_function_set_namespace pointer) namespace
   in
-  let t = { pointer; user_data; name } in
+  let t = { pointer; user_data; name; free_lock = Mutex.create () } in
   Gc.finalise_last (fun () -> free t) t;
   t
 
