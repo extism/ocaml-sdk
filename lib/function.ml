@@ -1,22 +1,25 @@
 open Ctypes
 
 type t = {
+  free_lock : Mutex.t;
   mutable pointer : unit ptr;
   mutable user_data : unit ptr;
   name : string;
 }
 
 let free t =
-  let () =
-    if not (is_null t.user_data) then
-      let () = Root.release t.user_data in
-      t.user_data <- null
-  in
-  if not (is_null t.pointer) then
-    let () = Bindings.extism_function_free t.pointer in
-    t.pointer <- null
-
-let free_all l = List.iter free l
+  let () = Mutex.lock t.free_lock in
+  Fun.protect
+    ~finally:(fun () -> Mutex.unlock t.free_lock)
+    (fun () ->
+      let () =
+        if not (is_null t.user_data) then
+          let () = Root.release t.user_data in
+          t.user_data <- null
+      in
+      if not (is_null t.pointer) then
+        let () = Bindings.extism_function_free t.pointer in
+        t.pointer <- null)
 
 let create name ?namespace ~params ~results ~user_data f =
   let inputs = CArray.of_list Bindings.Extism_val_type.t params in
@@ -38,7 +41,7 @@ let create name ?namespace ~params ~results ~user_data f =
   let () =
     Option.iter (Bindings.extism_function_set_namespace pointer) namespace
   in
-  let t = { pointer; user_data; name } in
+  let t = { pointer; user_data; name; free_lock = Mutex.create () } in
   Gc.finalise_last (fun () -> free t) t;
   t
 

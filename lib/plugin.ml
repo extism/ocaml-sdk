@@ -1,6 +1,7 @@
 module Manifest = Extism_manifest
 
 type t = {
+  free_lock : Mutex.t;
   mutable pointer : unit Ctypes.ptr;
   mutable functions : Function.t list;
 }
@@ -15,9 +16,13 @@ let set_config plugin = function
         (Unsigned.UInt64.of_int (String.length config))
 
 let free t =
-  if not (Ctypes.is_null t.pointer) then
-    let () = Bindings.extism_plugin_free t.pointer in
-    t.pointer <- Ctypes.null
+  let () = Mutex.lock t.free_lock in
+  Fun.protect
+    ~finally:(fun () -> Mutex.unlock t.free_lock)
+    (fun () ->
+      if not (Ctypes.is_null t.pointer) then
+        let () = Bindings.extism_plugin_free t.pointer in
+        t.pointer <- Ctypes.null)
 
 let strlen ptr =
   let rec aux ptr len =
@@ -52,7 +57,7 @@ let create ?config ?(wasi = false) ?(functions = []) wasm =
     let s = get_errmsg (Ctypes.( !@ ) errmsg) in
     Error (`Msg s)
   else
-    let t = { pointer; functions } in
+    let t = { pointer; functions; free_lock = Mutex.create () } in
     let () = Gc.finalise_last (fun () -> free t) t in
     if not (set_config t config) then Error (`Msg "call to set_config failed")
     else Ok t
