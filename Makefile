@@ -15,7 +15,7 @@ prepare:
 	opam install .. --deps-only
 
 publish:
-	opam publish -v $(VERSION) https://github.com/extism/extism/archive/refs/tags/v$(TAG).tar.gz ..
+	opam publish -v $(VERSION) https://github.com/extism/ocaml-sdk/archive/refs/tags/v$(TAG).tar.gz ..
 
 install-cli: build
-	install ../_build/default/ocaml/bin/main.exe "$(PREFIX)/bin/extism-call"
+	install _build/default/bin/main.exe "$(PREFIX)/bin/extism-call"
