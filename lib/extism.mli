@@ -154,7 +154,7 @@ module Host_function: sig
     (** Get pointer to entire plugin memory *)
 
     val find : t -> Unsigned.UInt64.t -> memory_handle option
-    (** Convert an offset into a {memory_handle} *)
+    (** Convert an offset into a {!memory_handle} *)
 
     val alloc : t -> int -> memory_handle
     (** Allocate a new block of memory *)
@@ -265,7 +265,7 @@ module Plugin : sig
   end
 
   val cancel_handle : t -> Cancel_handle.t
-  (** Get the [Cancel_handle.t] *)
+  (** Get the {!Cancel_handle.t} *)
 
   val id : t -> Uuidm.t
   (** Get the plugin UUID *)
