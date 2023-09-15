@@ -265,7 +265,7 @@ module Plugin : sig
   end
 
   val cancel_handle : t -> Cancel_handle.t
-  (** Get the {Cancel_handle.t} *)
+  (** Get the [Cancel_handle.t] *)
 
   val id : t -> Uuidm.t
   (** Get the plugin UUID *)
