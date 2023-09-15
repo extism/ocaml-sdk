@@ -16,7 +16,6 @@ let set_config plugin = function
 
 let free t =
   if not (Ctypes.is_null t.pointer) then
-    let () = print_endline "AAA" in
     let () = Bindings.extism_plugin_free t.pointer in
     t.pointer <- Ctypes.null
 
@@ -98,36 +97,54 @@ let%test "call_bigstring" =
     (Bigstringaf.of_string ~off:0 ~len:14 "this is a test")
   |> Error.unwrap |> Bigstringaf.to_string = "{\"count\": 4}"
 
-let call (t : t) ~name input =
+let call_string (t : t) ~name input =
   let len = String.length input in
   call' Bindings.extism_plugin_call_s t ~name input (Unsigned.UInt64.of_int len)
   |> Result.map Bigstringaf.to_string
 
+let call (type a b) t ~name (module In : Type.S with type t = a) (a : a)
+    (module Out : Type.S with type t = b) : (b, Error.t) result =
+  let input = In.encode a in
+  let len = String.length input in
+  match
+    call' Bindings.extism_plugin_call_s t ~name input
+      (Unsigned.UInt64.of_int len)
+  with
+  | Ok x -> Out.decode x
+  | Error e -> Error e
+
 let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
-  call plugin ~name:"count_vowels" "this is a test"
+  call plugin
+    (module Type.String)
+    ~name:"count_vowels" "this is a test"
+    (module Type.String)
   |> Error.unwrap = "{\"count\": 4}"
 
 let%test "call_functions" =
-  let open Types.Val_type in
+  let open Val.Type in
   let hello_world =
     Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
       ~user_data:"Hello again!"
-    @@ fun plugin params results user_data ->
-    let open Types.Val_array in
-    let s = Current_plugin.input_string plugin params 0 in
+    @@ fun plugin user_data ->
+    let s = Host_function.input plugin (module Type.String) |> Result.get_ok in
     let () = print_endline "Hello from OCaml!" in
     let () = print_endline user_data in
     let () = print_endline s in
-    results.$[0] <- params.$[0]
+    Host_function.return plugin
+      (module Type.Json)
+      (`Assoc [ ("count", `Int 999) ])
   in
   let functions = [ hello_world ] in
   let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
   let plugin = of_manifest manifest ~functions ~wasi:true |> Error.unwrap in
   let b =
-    call plugin ~name:"count_vowels" "this is a test"
-    |> Error.unwrap = "{\"count\": 4}"
+    call plugin
+      (module Type.String)
+      ~name:"count_vowels" "this is a test"
+      (module Type.String)
+    |> Error.unwrap = "{\"count\":999}"
   in
   Gc.minor ();
   Gc.full_major ();

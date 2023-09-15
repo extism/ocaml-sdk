@@ -2,8 +2,9 @@ module Manifest = Extism_manifest
 module Error = Error
 module Plugin = Plugin
 module Function = Function
-module Current_plugin = Current_plugin
-include Types
+module Host_function = Host_function
+module Type = Type
+module Val = Val
 
 let extism_version = Bindings.extism_version
 
@@ -16,7 +17,10 @@ let%test "with_plugin" =
   let b =
     with_plugin
       (fun plugin ->
-        Plugin.call plugin ~name:"count_vowels" "this is a test"
+        Plugin.call plugin
+          (module Type.String)
+          ~name:"count_vowels" "this is a test"
+          (module Type.String)
         |> Error.unwrap = "{\"count\": 4}")
       plugin
   in
