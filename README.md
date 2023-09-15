@@ -29,14 +29,14 @@ let hello_world =
   @@ fun plugin user_data ->
 
   (* Get the input *)
-  let s = Host_function.input plugin (module Type.String) in
+  let s = Host_function.param plugin (module Type.String) in
   print_endline ("Original input: " ^ s);
 
   (* Print the userdata *)
   let () = print_endline user_data in
 
   (* Return a JSON value *)
-  Host_function.return plugin (module Type.Json) (`Assoc [ ("count", `Int 999) ])
+  Host_function.result plugin (module Type.Json) (`Assoc [ ("count", `Int 999) ])
 
 let () =
   (* Create a manifest using a file from disk *)
