@@ -127,25 +127,25 @@ module Host_function: sig
   type memory_handle = { offs : Unsigned.UInt64.t; len : Unsigned.UInt64.t }
   (** Represents a block of guest memory *)
 
-  val return_string : t -> ?index:int -> string -> unit
+  val result_string : t -> ?index:int -> string -> unit
   (** Return a string from a host function, this copies the string into memory and
       sets the results array at [index] with the pointer to the allocated value *)
 
-  val return_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
+  val result_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
   (** Return a bigstring from a host function, this copies the bigstring into memory and
       sets the results array at [index] with the pointer to the allocated value *)
 
-  val input_string : ?index:int -> t -> string
+  val param_string : ?index:int -> t -> string
   (** Get a string argument, the parameter at [index] should be an int64 value that points to the
       string in linear memory *)
 
-  val input_bigstring : ?index:int -> t -> Bigstringaf.t
+  val param_bigstring : ?index:int -> t -> Bigstringaf.t
   (** Load a parameter directly from memory *)
 
-  val input : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
+  val param : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
-  val return : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
+  val result : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
   (** Some helpter functions for reading/writing memory *)

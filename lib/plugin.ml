@@ -134,11 +134,11 @@ let%test "call_functions" =
     Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
       ~user_data:"Hello again!"
     @@ fun plugin user_data ->
-    let s = Host_function.input plugin (module Type.String) |> Result.get_ok in
+    let s = Host_function.param plugin (module Type.String) |> Result.get_ok in
     let () = print_endline "Hello from OCaml!" in
     let () = print_endline user_data in
     let () = print_endline s in
-    Host_function.return plugin
+    Host_function.result plugin
       (module Type.Json)
       (`Assoc [ ("count", `Int 999) ])
   in
