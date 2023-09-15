@@ -243,9 +243,11 @@ module Plugin : sig
 
   val call : t -> 
     name:string -> 
-    (module Type.S with type t = 'a) -> 'a -> 
-    (module Type.S with type t = 'b) -> ('b, Error.t) result
-  (** Call a function with typed input and output *)
+    (module Type.S with type t = 'a) -> 
+    (module Type.S with type t = 'b) ->
+    'a ->
+    ('b, Error.t) result
+  (** [call t ~name input_type output_type input] executes a function with typed input and output *)
 
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a lot of plugins ope

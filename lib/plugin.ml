@@ -102,8 +102,8 @@ let call_string (t : t) ~name input =
   call' Bindings.extism_plugin_call_s t ~name input (Unsigned.UInt64.of_int len)
   |> Result.map Bigstringaf.to_string
 
-let call (type a b) t ~name (module In : Type.S with type t = a) (a : a)
-    (module Out : Type.S with type t = b) : (b, Error.t) result =
+let call (type a b) t ~name (module In : Type.S with type t = a)
+    (module Out : Type.S with type t = b) (a : a) : (b, Error.t) result =
   let input = In.encode a in
   let len = String.length input in
   match
@@ -116,10 +116,10 @@ let call (type a b) t ~name (module In : Type.S with type t = a) (a : a)
 let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
-  call plugin
+  call plugin ~name:"count_vowels"
     (module Type.String)
-    ~name:"count_vowels" "this is a test"
     (module Type.String)
+    "this is a test"
   |> Error.unwrap = "{\"count\": 4}"
 
 let%test "call_functions" =
@@ -142,8 +142,8 @@ let%test "call_functions" =
   let b =
     call plugin
       (module Type.String)
-      ~name:"count_vowels" "this is a test"
       (module Type.String)
+      ~name:"count_vowels" "this is a test"
     |> Error.unwrap = "{\"count\":999}"
   in
   Gc.minor ();
