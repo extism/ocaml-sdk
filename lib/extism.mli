@@ -133,15 +133,15 @@ module Host_function: sig
 
   val return_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
   (** Return a bigstring from a host function, this copies the bigstring into memory and
-      sets the results array at [index] with the pointer to the allocated value *) 
-      
+      sets the results array at [index] with the pointer to the allocated value *)
+
   val input_string : ?index:int -> t -> string
   (** Get a string argument, the parameter at [index] should be an int64 value that points to the
       string in linear memory *)
 
   val input_bigstring : ?index:int -> t -> Bigstringaf.t
   (** Load a parameter directly from memory *)
-  
+
   val input : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
@@ -187,7 +187,7 @@ module Host_function: sig
 end
 
 
-(** [Function] is used to create new a new function, which can be called 
+(** [Function] is used to create new a new function, which can be called
     from a WebAssembly plugin *)
 module Function : sig
   type t
@@ -241,10 +241,11 @@ module Plugin : sig
   val call_string : t -> name:string -> string -> (string, Error.t) result
   (** Call a function, uses [string] for input/output *)
 
-  val call : t -> 
-    name:string -> 
-    (module Type.S with type t = 'a) -> 
+  val call :
+    (module Type.S with type t = 'a) ->
     (module Type.S with type t = 'b) ->
+    t ->
+    name:string ->
     'a ->
     ('b, Error.t) result
   (** [call t ~name input_type output_type input] executes a function with typed input and output *)
