@@ -110,6 +110,11 @@ module Type: sig
   module Bytes : S with type t = bytes
   module Bigstring : S with type t = Bigstringaf.t
   module Json : S with type t = Yojson.Safe.t
+
+  val string : (module S with type t = string)
+  val bytes : (module S with type t = bytes)
+  val bigstring : (module S with type t = Bigstringaf.t)
+  val json : (module S with type t = Yojson.Safe.t)
 end
 
 (** [Host_function] represents the plugin that is currently running, it should
