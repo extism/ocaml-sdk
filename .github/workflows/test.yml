@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        compiler: ["5.1"]
+        compiler: [ "5.1" ]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
