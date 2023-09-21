@@ -5,32 +5,11 @@ name: libextism
 runs:
   using: composite
   steps:
-    - name: Checkout sources
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       with:
-        repository: extism/extism
-        path: runtime
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-    - name: Cache Rust environment
-      uses: Swatinem/rust-cache@v1
-    - name: Cache libextism
-      id: cache-libextism
-      uses: actions/cache@v3
-      with:
-        path: runtime/target/**
-        key: ${{ runner.os }}-libextism-${{ hashFiles('runtime/**') }}
-    - name: Build
-      if: steps.cache-libextism.outputs.cache-hit != 'true'
+        repository: extism/cli
+        path: .extism-cli
+    - uses: ./.extism-cli/.github/actions/extism-cli
+    - name: Install
       shell: bash
-      run: |
-        cd runtime
-        cargo build --release -p libextism
-    - name: Install extism shared library
-      shell: bash
-      run: |
-        cd runtime
-        sudo make install
+      run: sudo extism lib install --version git
