@@ -12,4 +12,4 @@ runs:
     - uses: ./.extism-cli/.github/actions/extism-cli
     - name: Install
       shell: bash
-      run: sudo extism install --version git
+      run: sudo extism lib install --version git
