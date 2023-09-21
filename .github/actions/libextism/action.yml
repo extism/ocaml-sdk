@@ -11,4 +11,5 @@ runs:
         path: extism-cli
     - uses: ./.extism-cli/.github/actions/extism-cli
     - name: Install
+      shell: bash
       run: sudo extism install --version git
