@@ -20,11 +20,21 @@ jobs:
         with:
           dune-cache: true
           ocaml-compiler: "5.x"
+      - run: ocamlc -version > .ocaml-version
+      - name: Cache OCaml
+        id: cache-ocaml
+        uses: actions/cache@v3
+        with:
+          path: _opam
+          key: ${{ runner.os }}-opam-${{ hashFiles('*.opam') }}-${{ hashFiles('dune-project') }}-${{ hashFiles('.ocamlversion') }}
       - name: Build OCaml Host SDK
+        if: steps.cache-ocaml.outputs.cache-hit != 'true'
         run: |
+          opam upgrade -y
           opam install -y --deps-only .
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune build
       - name: Test OCaml Host SDK
         run: |
+          opam upgrade -y
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune exec ./bin/main.exe wasm/code.wasm count_vowels -- --input "qwertyuiop"
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune runtest
