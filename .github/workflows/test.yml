@@ -21,7 +21,7 @@ jobs:
         with:
           dune-cache: true
           ocaml-compiler: ${{ matrix.compiler }}
-      - run: ocamlc -version > .ocaml-version
+      - run: opam exec -- ocamlc -version > .ocaml-version
       - name: Cache OCaml
         id: cache-ocaml
         uses: actions/cache@v3
