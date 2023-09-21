@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        compiler: ["5.1"]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -19,14 +20,14 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           dune-cache: true
-          ocaml-compiler: "5.x"
+          ocaml-compiler: ${{ matrix.compiler }}
       - run: ocamlc -version > .ocaml-version
       - name: Cache OCaml
         id: cache-ocaml
         uses: actions/cache@v3
         with:
           path: _opam
-          key: ${{ runner.os }}-opam-${{ hashFiles('*.opam') }}-${{ hashFiles('dune-project') }}-${{ hashFiles('.ocamlversion') }}
+          key: ${{ runner.os }}-opam-${{ hashFiles('*.opam') }}-${{ hashFiles('dune-project') }}-${{ hashFiles('.ocaml-version') }}
       - name: Build OCaml Host SDK
         if: steps.cache-ocaml.outputs.cache-hit != 'true'
         run: |
