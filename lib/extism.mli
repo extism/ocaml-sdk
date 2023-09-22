@@ -5,13 +5,19 @@ val extism_version : unit -> string
 
 module Manifest = Extism_manifest
 
+(** Extism error type *)
 module Error : sig
   type t = [ `Msg of string ]
+  (** Error type *)
 
   exception Error of t
+  (** Exception type *)
 
   val unwrap : ('a, t) result -> 'a
+  (** Like {!Result.get_ok} for {!t} *)
+
   val throw : t -> 'a
+  (** Raise [t] as an exception *)
 end
 
 
@@ -103,18 +109,37 @@ module Type: sig
     type t
 
     val encode : t -> string
+    (** Encode a value to a string *)
+
     val decode : Bigstringaf.t -> (t, Error.t) result
+    (** Decode a value from a bigstring. The bigstring argument uses a direct pointer
+        into the plugin memory, this means it shouldn't be stored outside of this function
+        without being copied first *)
   end
 
   module String : S with type t = string
+  (** String type *)
+
   module Bytes : S with type t = bytes
+  (** Bytes type *)
+
   module Bigstring : S with type t = Bigstringaf.t
+  (** Bigstring type *)
+
   module Json : S with type t = Yojson.Safe.t
+  (** Json type *)
 
   val string : (module S with type t = string)
+  (** String type helper, this can be passed to a function expecting a wrapped module *)
+
   val bytes : (module S with type t = bytes)
+  (** Bytes type helper, this can be passed to a function expecting a wrapped module *)
+
   val bigstring : (module S with type t = Bigstringaf.t)
+  (** Bigstring type helper, this can be passed to a function expecting a wrapped module *)
+
   val json : (module S with type t = Yojson.Safe.t)
+  (** Json type helper, this can be passed to a function expecting a wrapped module *)
 end
 
 (** [Host_function] represents the plugin that is currently running, it should
@@ -132,25 +157,25 @@ module Host_function: sig
   type memory_handle = { offs : Unsigned.UInt64.t; len : Unsigned.UInt64.t }
   (** Represents a block of guest memory *)
 
-  val result_string : t -> ?index:int -> string -> unit
+  val output_string : t -> ?index:int -> string -> unit
   (** Return a string from a host function, this copies the string into memory and
       sets the results array at [index] with the pointer to the allocated value *)
 
-  val result_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
+  val output_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
   (** Return a bigstring from a host function, this copies the bigstring into memory and
       sets the results array at [index] with the pointer to the allocated value *)
 
-  val param_string : ?index:int -> t -> string
+  val input_string : ?index:int -> t -> string
   (** Get a string argument, the parameter at [index] should be an int64 value that points to the
       string in linear memory *)
 
-  val param_bigstring : ?index:int -> t -> Bigstringaf.t
+  val input_bigstring : ?index:int -> t -> Bigstringaf.t
   (** Load a parameter directly from memory *)
 
-  val param : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
+  val input : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
-  val result : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
+  val output : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
   (** Some helpter functions for reading/writing memory *)
@@ -219,6 +244,7 @@ end
 
 val set_log_file :
   ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] -> string -> bool
+(** Set the log file and level for all Extism plugins *)
 
 (** [Plugins] contain functions that can be called *)
 module Plugin : sig

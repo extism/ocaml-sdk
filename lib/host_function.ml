@@ -68,33 +68,32 @@ module Memory_handle = struct
     Bigstringaf.blit_from_string s ~src_off:0 x ~dst_off:0 ~len:length
 end
 
-let result_string t ?(index = 0) s =
+let output_string t ?(index = 0) s =
   let mem = Memory_handle.alloc t (String.length s) in
   Memory_handle.set_string t mem s;
   Val.Array.(
     t.results.$[index] <- Val.of_i64 (Unsigned.UInt64.to_int64 mem.offs))
 
-let result_bigstring t ?(index = 0) s =
+let output_bigstring t ?(index = 0) s =
   let mem = Memory_handle.alloc t (Bigstringaf.length s) in
   Memory_handle.set_bigstring t mem s;
   Val.Array.(
     t.results.$[index] <- Val.of_i64 (Unsigned.UInt64.to_int64 mem.offs))
 
-let param_string ?(index = 0) t =
+let input_string ?(index = 0) t =
   let inp = Val.Array.(t.params.$[index]) in
   let mem = Memory_handle.of_val_exn t inp in
   Memory_handle.get_string t mem
 
-let param_bigstring ?(index = 0) t =
+let input_bigstring ?(index = 0) t =
   let inp = Val.Array.(t.params.$[index]) in
   let mem = Memory_handle.of_val_exn t inp in
   Memory_handle.get_bigstring t mem
 
-let result (type a) t ?index (module C : Type.S with type t = a) (a : a) =
+let output (type a) t ?index (module C : Type.S with type t = a) (a : a) =
   let s = C.encode a in
-  print_endline s;
-  result_string t ?index s
+  output_string t ?index s
 
-let param (type a) t ?index (module C : Type.S with type t = a) =
-  let bs = param_bigstring ?index t in
+let input (type a) t ?index (module C : Type.S with type t = a) =
+  let bs = input_bigstring ?index t in
   C.decode bs
