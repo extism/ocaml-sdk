@@ -16,6 +16,9 @@ Then add `extism` to your `dune` depdendencies:
   (libraries extism)
 ```
 
+Installing the `extism` package on opam will also install the `extism-call` executable, which can be used
+to execute Extism plugins.
+
 ## Example
 
 ```ocaml
