@@ -91,4 +91,7 @@ val of_file : string -> t
 (** Read manifest from JSON file *)
 
 val with_config : t -> config -> t
-(** Updates a manifest config *)
+(** Returns a new {!t} with the [config] field updated *)
+
+val with_memory_max: t -> int -> t
+(** Returns a new {!t} with [memory.max_pages] updates *) 

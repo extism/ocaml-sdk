@@ -98,6 +98,7 @@ let of_file filename =
   t_of_yojson j
 
 let with_config t config = { t with config = Some config }
+let with_memory_max t max = { t with memory = Some { max_pages = Some max } }
 
 let%test "rountrip" =
   let config = [ ("a", Some "b"); ("b", Some "c") ] in
