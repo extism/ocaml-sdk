@@ -20,7 +20,7 @@ depends: [
   "ppx_inline_test" {>= "v0.15.0"}
   "cmdliner" {>= "1.1.1"}
   "uuidm" {>= "0.9.0"}
-  "mdx" {>= "2.0.0" & with-test}
+  "mdx" {dev & with-test}
   "odoc" {with-doc}
 ]
 build: [
@@ -41,5 +41,5 @@ dev-repo: "git+https://github.com/extism/ocaml-sdk.git"
 build-env: [EXTISM_TEST_NO_LIB = ""]
 post-messages: ["See https://extism.org/docs/install/ for information about installing libextism"]
 pin-depends: [
-  [ "mdx" "git+https://github.com/realworldocaml/mdx#9586620d81c923b98819042f67a8ce664b2552ac" ]
+  [ "mdx.dev" "git+https://github.com/realworldocaml/mdx#9586620d81c923b98819042f67a8ce664b2552ac" ]
 ]

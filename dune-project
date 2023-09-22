@@ -32,7 +32,7 @@
   (ppx_inline_test (>= v0.15.0))
   (cmdliner (>= 1.1.1))
   (uuidm (>= 0.9.0))
-  (mdx :with-test)
+  (mdx (and :dev :with-test))
  )
  (tags
   (topics wasm plugin)))

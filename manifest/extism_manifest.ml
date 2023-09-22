@@ -50,8 +50,8 @@ module Wasm = struct
   type url = {
     url : string;
     headers : dict option; [@yojson.option]
-    name : string option; [@yojson.option]
     meth : string option; [@yojson.option] [@key "method"]
+    name : string option; [@yojson.option]
     hash : string option; [@yojson.option]
   }
   [@@deriving yojson]

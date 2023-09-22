@@ -1,41 +1,48 @@
-type memory_options = { max_pages : int option } [@@deriving yojson]
+(** Extism manifest
+
+    This package provides an OCaml interface for the {{: https://extism.org/docs/concepts/manifest} Extism manifest}
+*)
+
+type memory_options = { 
+max_pages : int option (** [max_pages] can be used to limit the total number of pages used by the runtime *)
+} [@@deriving yojson]
 (** Memory options *)
 
 type dict = (string * string) list [@@deriving yojson]
 (** Key/value dictionary *)
 
 type config = (string * string option) list [@@deriving yojson]
-(** Key/value dictionary with optional values *)
+(** Key/value dictionary with optional values, used for passing values into a plugin at runtime *)
 
 module Wasm : sig
   type file = {
-    path : string;
-    name : string option; [@yojson.option]
-    hash : string option; [@yojson.option]
+    path : string; (** Path to Wasm module on disk *)
+    name : string option; [@yojson.option] (** Optional name of module for linking *)
+    hash : string option; [@yojson.option] (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly file *)
 
   type data = {
-    data : string;
-    name : string option; [@yojson.option]
-    hash : string option; [@yojson.option]
+    data : string; (** A string containing a Wasm module *)
+    name : string option; [@yojson.option] (** Optional name of module for linking *)
+    hash : string option; [@yojson.option] (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly module data *)
 
   type url = {
-    url : string;
-    headers : dict option; [@yojson.option]
-    name : string option; [@yojson.option]
-    meth : string option; [@yojson.option] [@key "method"]
-    hash : string option; [@yojson.option]
+    url : string; (** A URL to a Wasm module *)
+    headers : dict option; [@yojson.option] (** Request headers *)
+    meth : string option; [@yojson.option] [@key "method"] (** Request method *)
+    name : string option; [@yojson.option] (** Optional name of module for linking *)
+    hash : string option; [@yojson.option] (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly URL *)
 
-  (** WebAssembly from a file, module data or URL *)
   type t = File of file | Data of data | Url of url [@@deriving yojson]
+  (** WebAssembly from a file, module data or URL *)
 
   val file : ?name:string -> ?hash:string -> string -> t
   (** Create [wasm] from filename *)
