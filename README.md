@@ -29,24 +29,24 @@ let hello_world =
   @@ fun plugin user_data ->
 
   (* Get the input *)
-  let s = Host_function.param plugin Type.string in
-  print_endline ("Original input: " ^ s);
+  let s = Host_function.input plugin Type.string in
+  print_endline ("Original input: " ^ Error.unwrap s);
 
   (* Print the userdata *)
   let () = print_endline user_data in
 
   (* Return a JSON value *)
-  Host_function.result plugin Type.json (`Assoc [ ("count", `Int 999) ])
+  Host_function.output plugin Type.json (`Assoc [ ("count", `Int 999) ])
 
 let () =
   (* Create a manifest using a file from disk *)
-  let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
+  let manifest = Manifest.(create [ Wasm.file "wasm/code-functions.wasm" ]) in
 
   (* Create a plugin from the manifest with the [hello_world] host function *)
   let plugin = Plugin.of_manifest manifest ~functions:[hello_world] ~wasi:true |> Error.unwrap in
 
   (* Call [count_vowels] *)
-  let output = Plugin.call_string plugin ~name:"count_vowels" "this is a test" in
+  let output = Plugin.call_string plugin ~name:"count_vowels" "this is a test" |> Error.unwrap in
 
   (* Print the result *)
   print_endline output
