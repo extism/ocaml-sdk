@@ -14,10 +14,10 @@ module Error : sig
   (** Exception type *)
 
   val unwrap : ('a, t) result -> 'a
-  (** Like {!Result.get_ok} for {!t} *)
+  (** Like [Result.get_ok] for {!t} *)
 
   val throw : t -> 'a
-  (** Raise [t] as an exception *)
+  (** Raise {!t} as an exception *)
 end
 
 (** [Val] represents low-level WebAssembly values *)
@@ -110,9 +110,9 @@ module Type : sig
     (** Encode a value to a string *)
 
     val decode : Bigstringaf.t -> (t, Error.t) result
-    (** Decode a value from a bigstring. The bigstring argument uses a direct pointer
-        into the plugin memory, this means it shouldn't be stored outside of this function
-        without being copied first *)
+    (** Decode a value from a bigstring. The bigstring argument uses a direct
+        pointer into the plugin memory, this means it shouldn't be stored
+        outside of this function without being copied first *)
   end
 
   module String : S with type t = string
@@ -128,16 +128,20 @@ module Type : sig
   (** Json type *)
 
   val string : (module S with type t = string)
-  (** String type helper, this can be passed to a function expecting a wrapped module *)
+  (** String type helper, this can be passed to a function expecting a wrapped
+      module *)
 
   val bytes : (module S with type t = bytes)
-  (** Bytes type helper, this can be passed to a function expecting a wrapped module *)
+  (** Bytes type helper, this can be passed to a function expecting a wrapped
+      module *)
 
   val bigstring : (module S with type t = Bigstringaf.t)
-  (** Bigstring type helper, this can be passed to a function expecting a wrapped module *)
+  (** Bigstring type helper, this can be passed to a function expecting a
+      wrapped module *)
 
   val json : (module S with type t = Yojson.Safe.t)
-  (** Json type helper, this can be passed to a function expecting a wrapped module *)
+  (** Json type helper, this can be passed to a function expecting a wrapped
+      module *)
 end
 
 (** [Host_function] represents the plugin that is currently running, it should
@@ -156,16 +160,18 @@ module Host_function : sig
   (** Represents a block of guest memory *)
 
   val output_string : t -> ?index:int -> string -> unit
-  (** Return a string from a host function, this copies the string into memory and
-      sets the results array at [index] with the pointer to the allocated value *)
+  (** Return a string from a host function, this copies the string into memory
+      and sets the results array at [index] with the pointer to the allocated
+      value *)
 
   val output_bigstring : t -> ?index:int -> Bigstringaf.t -> unit
-  (** Return a bigstring from a host function, this copies the bigstring into memory and
-      sets the results array at [index] with the pointer to the allocated value *)
+  (** Return a bigstring from a host function, this copies the bigstring into
+      memory and sets the results array at [index] with the pointer to the
+      allocated value *)
 
   val input_string : ?index:int -> t -> string
-  (** Get a string argument, the parameter at [index] should be an int64 value that points to the
-      string in linear memory *)
+  (** Get a string argument, the parameter at [index] should be an int64 value
+      that points to the string in linear memory *)
 
   val input_bigstring : ?index:int -> t -> Bigstringaf.t
   (** Load a parameter directly from memory *)
@@ -198,8 +204,8 @@ module Host_function : sig
     (** Convert [Val] to memory block *)
 
     val of_val_exn : t -> Val.t -> memory_handle
-    (** Convert [Val] to memory block, raises [Invalid_argument] if the value is not a pointer
-        to a valid memory block *)
+    (** Convert [Val] to memory block, raises [Invalid_argument] if the value is
+        not a pointer to a valid memory block *)
 
     val get_string : t -> memory_handle -> string
     (** Get a string from memory stored at the provided offset *)
@@ -215,8 +221,8 @@ module Host_function : sig
   end
 end
 
-(** [Function] is used to create new a new function, which can be called
-    from a WebAssembly plugin *)
+(** [Function] is used to create new a new function, which can be called from a
+    WebAssembly plugin *)
 module Function : sig
   type t
   (** Function type *)
@@ -229,12 +235,11 @@ module Function : sig
     user_data:'a ->
     (Host_function.t -> 'a -> unit) ->
     t
-  (** Create a new function, [Function.v name ~params ~results ~user_data f] creates
-      a new [Function] with the given [name], [params] specifies the argument types,
-      [results] specifies the return types, [user_data] is used to pass arbitrary
-      OCaml values into the function and [f] is the OCaml function that will be
-      called.
-  *)
+  (** Create a new function, [Function.v name ~params ~results ~user_data f]
+      creates a new [Function] with the given [name], [params] specifies the
+      argument types, [results] specifies the return types, [user_data] is used
+      to pass arbitrary OCaml values into the function and [f] is the OCaml
+      function that will be called. *)
 
   val with_namespace : t -> string -> t
   (** Update a function's namespace *)
@@ -277,11 +282,12 @@ module Plugin : sig
     name:string ->
     'a ->
     ('b, Error.t) result
-  (** [call t ~name input_type output_type input] executes a function with typed input and output *)
+  (** [call t ~name input_type output_type input] executes a function with typed
+      input and output *)
 
   val free : t -> unit
-  (** Free a plugin immediately, this isn't normally required unless there are a lot of plugins ope
-      at once *)
+  (** Free a plugin immediately, this isn't normally required unless there are a
+      lot of plugins ope at once *)
 
   val function_exists : t -> string -> bool
   (** Check if a function is exported by a plugin *)
@@ -301,5 +307,5 @@ module Plugin : sig
 end
 
 val with_plugin : (Plugin.t -> 'a) -> Plugin.t -> 'a
-(** Create a Plugin that can be used within the scope of the provided callback, it will
-    automatically be freed when the function returns *)
+(** Create a Plugin that can be used within the scope of the provided callback,
+    it will automatically be freed when the function returns *)
