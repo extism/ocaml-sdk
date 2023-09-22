@@ -16,6 +16,8 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
       - uses: ./.github/actions/libextism
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Setup OCaml env
         uses: ocaml/setup-ocaml@v2
         with:

@@ -13,5 +13,3 @@ runs:
     - name: Install
       shell: bash
       run: sudo extism lib install --version git
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
