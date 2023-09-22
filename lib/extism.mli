@@ -1,6 +1,6 @@
 (** Extism bindings for OCaml
 
-    {1 Introduction}
+    {1 Introduction 1}
 
     Extism is a framework for executing WebAssembly plugins. The OCaml bindings require libextism,
     installation information is available on {{: https://extism.org/docs/install }the Extism website}
