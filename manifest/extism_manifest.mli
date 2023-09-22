@@ -1,48 +1,56 @@
 (** Extism manifest
 
-    This package provides an OCaml interface for the {{: https://extism.org/docs/concepts/manifest} Extism manifest}
-*)
+    This package provides an OCaml interface for the
+    {{:https://extism.org/docs/concepts/manifest} Extism manifest} *)
 
-type memory_options = { 
-max_pages : int option (** [max_pages] can be used to limit the total number of pages used by the runtime *)
-} [@@deriving yojson]
+type memory_options = {
+  max_pages : int option;
+      (** [max_pages] can be used to limit the total number of pages used by the
+          runtime *)
+}
+[@@deriving yojson]
 (** Memory options *)
 
 type dict = (string * string) list [@@deriving yojson]
 (** Key/value dictionary *)
 
 type config = (string * string option) list [@@deriving yojson]
-(** Key/value dictionary with optional values, used for passing values into a plugin at runtime *)
+(** Key/value dictionary with optional values, used for passing values into a
+    plugin at runtime *)
 
 module Wasm : sig
   type file = {
-    path : string; (** Path to Wasm module on disk *)
-    name : string option; [@yojson.option] (** Optional name of module for linking *)
-    hash : string option; [@yojson.option] (** Optional hash for verification *)
+    path : string;  (** Path to Wasm module on disk *)
+    name : string option; [@yojson.option]
+        (** Optional name of module for linking *)
+    hash : string option; [@yojson.option]  (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly file *)
 
   type data = {
-    data : string; (** A string containing a Wasm module *)
-    name : string option; [@yojson.option] (** Optional name of module for linking *)
-    hash : string option; [@yojson.option] (** Optional hash for verification *)
+    data : string;  (** A string containing a Wasm module *)
+    name : string option; [@yojson.option]
+        (** Optional name of module for linking *)
+    hash : string option; [@yojson.option]  (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly module data *)
 
   type url = {
-    url : string; (** A URL to a Wasm module *)
-    headers : dict option; [@yojson.option] (** Request headers *)
-    meth : string option; [@yojson.option] [@key "method"] (** Request method *)
-    name : string option; [@yojson.option] (** Optional name of module for linking *)
-    hash : string option; [@yojson.option] (** Optional hash for verification *)
+    url : string;  (** A URL to a Wasm module *)
+    headers : dict option; [@yojson.option]  (** Request headers *)
+    meth : string option; [@yojson.option] [@key "method"]
+        (** Request method *)
+    name : string option; [@yojson.option]
+        (** Optional name of module for linking *)
+    hash : string option; [@yojson.option]  (** Optional hash for verification *)
   }
   [@@deriving yojson]
   (** WebAssembly URL *)
 
-  type t = File of file | Data of data | Url of url [@@deriving yojson]
   (** WebAssembly from a file, module data or URL *)
+  type t = File of file | Data of data | Url of url [@@deriving yojson]
 
   val file : ?name:string -> ?hash:string -> string -> t
   (** Create [wasm] from filename *)
@@ -62,11 +70,17 @@ end
 
 type t = {
   wasm : Wasm.t list;
-  memory : memory_options option;
+      (** A list of Wasm modules to be linked, the final module or the module
+          named [main] will be used as the main module *)
+  memory : memory_options option;  (** Memory options *)
   config : config option;
+      (** Config contains immutable configutation parameters from the host to a
+          plugin *)
   allowed_hosts : string list option;
+      (** A list of allowed hosts when using Extism HTTP functions *)
   allowed_paths : dict option;
-  timeout_ms : int option;
+      (** A dict containing a mapping from local_path:guest_path *)
+  timeout_ms : int option;  (** Plugin timeout in milliseconds *)
 }
 [@@deriving yojson]
 (** Manifest type *)
@@ -93,5 +107,5 @@ val of_file : string -> t
 val with_config : t -> config -> t
 (** Returns a new {!t} with the [config] field updated *)
 
-val with_memory_max: t -> int -> t
-(** Returns a new {!t} with [memory.max_pages] updates *) 
+val with_memory_max : t -> int -> t
+(** Returns a new {!t} with [memory.max_pages] updates *)

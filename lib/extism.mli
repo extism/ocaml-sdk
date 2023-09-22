@@ -2,11 +2,11 @@
 
     {1 Introduction 1}
 
-    Extism is a framework for executing WebAssembly plugins. The OCaml bindings require libextism,
-    installation information is available on {{: https://extism.org/docs/install }the Extism website}
+    Extism is a framework for executing WebAssembly plugins. The OCaml bindings
+    require libextism, installation information is available on
+    {{:https://extism.org/docs/install} the Extism website}
 
-    {1 API 1}
-*)
+    {1 API 1} *)
 
 val extism_version : unit -> string
 (** Returns the libextism version, not the version of the OCaml library *)
