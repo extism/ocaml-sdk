@@ -20,7 +20,6 @@ module Error : sig
   (** Raise [t] as an exception *)
 end
 
-
 (** [Val] represents low-level WebAssembly values *)
 module Val : sig
   type t
@@ -102,9 +101,8 @@ module Val : sig
   (** Same as [to_f64] but raises an exception if the types don't match*)
 end
 
-
 (** [Type] defines conversions from OCaml values in and out of Extism memory *)
-module Type: sig
+module Type : sig
   module type S = sig
     type t
 
@@ -144,14 +142,14 @@ end
 
 (** [Host_function] represents the plugin that is currently running, it should
     it should only be used from a host function *)
-module Host_function: sig
+module Host_function : sig
   type t
   (** Opaque type, wraps [ExtismCurrentPlugin] *)
 
-  val params: t -> Val.Array.t
+  val params : t -> Val.Array.t
   (** Get host function parameters array *)
 
-  val results: t -> Val.Array.t
+  val results : t -> Val.Array.t
   (** Get host function results array *)
 
   type memory_handle = { offs : Unsigned.UInt64.t; len : Unsigned.UInt64.t }
@@ -172,7 +170,8 @@ module Host_function: sig
   val input_bigstring : ?index:int -> t -> Bigstringaf.t
   (** Load a parameter directly from memory *)
 
-  val input : t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
+  val input :
+    t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
   val output : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
@@ -215,7 +214,6 @@ module Host_function: sig
     (** Store a bigstring into memory at the provided offset *)
   end
 end
-
 
 (** [Function] is used to create new a new function, which can be called
     from a WebAssembly plugin *)

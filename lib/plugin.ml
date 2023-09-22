@@ -122,10 +122,7 @@ let call (type a b) (module In : Type.S with type t = a)
 let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
-  call
-    Type.string
-    Type.string
-    plugin ~name:"count_vowels" "this is a test"
+  call Type.string Type.string plugin ~name:"count_vowels" "this is a test"
   |> Error.unwrap = "{\"count\": 4}"
 
 let%test "call_functions" =
@@ -138,18 +135,13 @@ let%test "call_functions" =
     let () = print_endline "Hello from OCaml!" in
     let () = print_endline user_data in
     let () = print_endline s in
-    Host_function.output plugin
-      Type.json
-      (`Assoc [ ("count", `Int 999) ])
+    Host_function.output plugin Type.json (`Assoc [ ("count", `Int 999) ])
   in
   let functions = [ hello_world ] in
   let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
   let plugin = of_manifest manifest ~functions ~wasi:true |> Error.unwrap in
   let b =
-    call
-      Type.string
-      Type.string
-      plugin ~name:"count_vowels" "this is a test"
+    call Type.string Type.string plugin ~name:"count_vowels" "this is a test"
     |> Error.unwrap = "{\"count\":999}"
   in
   Gc.minor ();

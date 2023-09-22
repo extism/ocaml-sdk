@@ -17,10 +17,8 @@ let%test "with_plugin" =
   let b =
     with_plugin
       (fun plugin ->
-        Plugin.call
-          Type.string
-          Type.string
-          plugin ~name:"count_vowels" "this is a test"
+        Plugin.call Type.string Type.string plugin ~name:"count_vowels"
+          "this is a test"
         |> Error.unwrap = "{\"count\": 4}")
       plugin
   in
