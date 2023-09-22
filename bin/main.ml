@@ -20,8 +20,8 @@ let split_config =
       | p :: tl -> Some (p, Some (String.concat "=" tl)))
 
 let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
-    memory_max log_level log_file wasi =
-  let input = if String.equal input "-" then read_stdin () else input in
+    memory_max log_level log_file wasi stdin =
+  let input = if stdin then read_stdin () else input in
   let allowed_paths = split_allowed_paths allowed_paths in
   let config = split_config config in
   let memory = Manifest.{ max_pages = memory_max } in
@@ -125,10 +125,14 @@ let wasi =
   let doc = "Enable WASI." in
   Arg.(value & flag & info [ "wasi" ] ~doc)
 
+let stdin =
+  let doc = "Read function input from stdin." in
+  Arg.(value & flag & info [ "stdin" ] ~doc)
+
 let main_t =
   Term.(
     const main $ file $ func_name $ input $ loop $ timeout $ allowed_paths
-    $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi)
+    $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi $ stdin)
 
 let cmd = Cmd.v (Cmd.info "extism-run") main_t
 let () = exit (Cmd.eval cmd)
