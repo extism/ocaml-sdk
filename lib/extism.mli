@@ -287,7 +287,7 @@ module Plugin : sig
 
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a
-      lot of plugins ope at once *)
+      lot of plugins open at once *)
 
   val function_exists : t -> string -> bool
   (** Check if a function is exported by a plugin *)
