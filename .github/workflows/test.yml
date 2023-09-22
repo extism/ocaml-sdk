@@ -34,7 +34,7 @@ jobs:
         if: steps.cache-ocaml.outputs.cache-hit != 'true'
         run: |
           opam upgrade -y
-          opam install -y --deps-only .
+          opam install -y --deps-only --with-test --with-doc .
           LD_LIBRARY_PATH=/usr/local/lib opam exec -- dune build
       - name: Test OCaml Host SDK
         run: |
