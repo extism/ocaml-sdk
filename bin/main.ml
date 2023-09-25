@@ -19,13 +19,23 @@ let split_config =
       | [ p ] -> Some (p, None)
       | p :: tl -> Some (p, Some (String.concat "=" tl)))
 
+let print_timing ~time name f =
+  if not time then f ()
+  else
+    let start = Unix.gettimeofday () in
+    let out = f () in
+    let finish = Unix.gettimeofday () in
+    Printf.printf "TIME %s: %fs\n%!" name (finish -. start);
+    out
+
 let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
-    memory_max log_level log_file wasi stdin =
+    memory_max log_level log_file wasi stdin time =
   let input = if stdin then read_stdin () else input in
   let allowed_paths = split_allowed_paths allowed_paths in
   let config = split_config config in
   let memory = Manifest.{ max_pages = memory_max } in
   let manifest =
+    print_timing ~time "loaded manifest" @@ fun () ->
     try
       let m = Manifest.of_file file in
       {
@@ -54,6 +64,7 @@ let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
         exit 1
   in
   for _ = 0 to loop do
+    print_timing ~time ("call to " ^ func_name) @@ fun () ->
     match Plugin.call_string plugin ~name:func_name input with
     | Ok res -> print_endline res
     | Error (`Msg e) ->
@@ -129,10 +140,15 @@ let stdin =
   let doc = "Read function input from stdin." in
   Arg.(value & flag & info [ "stdin" ] ~doc)
 
+let time =
+  let doc = "Print timing information." in
+  Arg.(value & flag & info [ "time" ] ~doc)
+
 let main_t =
   Term.(
     const main $ file $ func_name $ input $ loop $ timeout $ allowed_paths
-    $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi $ stdin)
+    $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi $ stdin
+    $ time)
 
 let cmd = Cmd.v (Cmd.info "extism-run") main_t
 let () = exit (Cmd.eval cmd)
