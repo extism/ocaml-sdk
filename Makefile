@@ -1,5 +1,4 @@
-VERSION?=0.4.0
-TAG?=0.5.0
+VERSION?=1.0.0-alpha.0
 
 PREFIX?=$$HOME/.local
 
@@ -12,10 +11,10 @@ format:
 	dune build @fmt --auto-promote
 
 prepare:
-	opam install .. --deps-only
+	opam install . --deps-only
 
 publish:
-	opam publish -v $(VERSION) https://github.com/extism/ocaml-sdk/archive/refs/tags/v$(TAG).tar.gz ..
+	opam publish -v $(VERSION) https://github.com/extism/ocaml-sdk/archive/refs/tags/v$(VERSION).tar.gz .
 
 install-cli: build
 	install _build/default/bin/main.exe "$(PREFIX)/bin/extism-call"
