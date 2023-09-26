@@ -49,6 +49,24 @@ end
 
 let int = (module Int : S with type t = int)
 
+module Float32 = struct
+  type t = float
+
+  let encode f = Int32.encode (Stdlib.Int32.bits_of_float f)
+  let decode bs = Int32.decode bs |> Result.map Stdlib.Int32.float_of_bits
+end
+
+let float32 = (module Float32 : S with type t = float)
+
+module Float64 = struct
+  type t = float
+
+  let encode f = Int64.encode (Stdlib.Int64.bits_of_float f)
+  let decode bs = Int64.decode bs |> Result.map Stdlib.Int64.float_of_bits
+end
+
+let float64 = (module Float64 : S with type t = float)
+
 module String = struct
   type t = string
 

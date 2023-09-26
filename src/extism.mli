@@ -147,6 +147,12 @@ module Type : sig
   module Int : S with type t = int
   (** OCaml [int] type, encoded as an int64 *)
 
+  module Float32 : S with type t = float
+  (** 32-bit float type *)
+
+  module Float64 : S with type t = float
+  (** 64-bit float type *)
+
   val string : (module S with type t = string)
   (** String type helper, this can be passed to a function expecting a wrapped
       module *)
@@ -177,6 +183,14 @@ module Type : sig
 
   val int32 : (module S with type t = Int32.t)
   (** Int32 type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val float32 : (module S with type t = Float32.t)
+  (** Float32 type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val float64 : (module S with type t = Float64.t)
+  (** Float64 type helper, this can be passed to a function expecting a wrapped
       module *)
 end
 

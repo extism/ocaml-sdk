@@ -7,11 +7,12 @@ build:
 
 test:
 	dune test
+
 format:
 	dune build @fmt --auto-promote
 
 prepare:
-	opam install . --deps-only
+	opam install . --deps-only --with-test --with-doc
 
 publish:
 	opam publish -v $(VERSION) https://github.com/extism/ocaml-sdk/archive/refs/tags/v$(VERSION).tar.gz .
