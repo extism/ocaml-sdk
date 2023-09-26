@@ -26,7 +26,7 @@ open Extism
 
 (* Define a host function *)
 let hello_world =
-  let open Val.Type in
+  let open Val_type in
   Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
     ~user_data:"Hello again!"
   @@ fun plugin user_data ->
