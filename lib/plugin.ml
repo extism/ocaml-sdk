@@ -126,7 +126,7 @@ let%test "call" =
   |> Error.unwrap = "{\"count\": 4}"
 
 let%test "call_functions" =
-  let open Val.Type in
+  let open Val_type in
   let hello_world =
     Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
       ~user_data:"Hello again!"

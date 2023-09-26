@@ -28,25 +28,25 @@ module Error : sig
   (** Raise {!t} as an exception *)
 end
 
+(** [Val_type] enumerates every possible argument/result type *)
+module Val_type : sig
+  type t =
+    | I32
+    | I64
+    | F32
+    | F64
+    | V128
+    | FuncRef
+    | ExternRef  (** Value type *)
+
+  val of_int : int -> t
+  val to_int : t -> int
+end
+
 (** [Val] represents low-level WebAssembly values *)
 module Val : sig
   type t
   (** Val *)
-
-  (** [Val.Type] enumerates every possible argument/result type *)
-  module Type : sig
-    type t =
-      | I32
-      | I64
-      | F32
-      | F64
-      | V128
-      | FuncRef
-      | ExternRef  (** Value type *)
-
-    val of_int : int -> t
-    val to_int : t -> int
-  end
 
   (** [Val.Array] is used for input/output parameters for host functions *)
   module Array : sig
@@ -69,8 +69,8 @@ module Val : sig
     (** Syntax for [set] *)
   end
 
-  val ty : t -> Type.t
-  (** [ty v] returns the [Val.Type.t] for the value [v] *)
+  val ty : t -> Val_type.t
+  (** [ty v] returns the {! Val_type.t} for the value [v] *)
 
   val of_i32 : int32 -> t
   (** Create an i32 [Val] *)
@@ -266,8 +266,8 @@ module Function : sig
   val create :
     string ->
     ?namespace:string ->
-    params:Val.Type.t list ->
-    results:Val.Type.t list ->
+    params:Val_type.t list ->
+    results:Val_type.t list ->
     user_data:'a ->
     (Host_function.t -> 'a -> unit) ->
     t

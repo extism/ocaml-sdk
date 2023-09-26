@@ -1,5 +1,4 @@
 open Ctypes
-module Type = Bindings.Extism_val_type
 
 type t = (Bindings.Extism_val.t, [ `Struct ]) Ctypes.structured
 
@@ -9,7 +8,7 @@ let of_i32 (x : int32) : t =
   let u = Ctypes.make Bindings.Extism_val_union.t in
   u @. Bindings.Extism_val_union.i32 <-@ x;
   let t = Ctypes.make Bindings.Extism_val.t in
-  t @. Bindings.Extism_val.ty <-@ Type.I32;
+  t @. Bindings.Extism_val.ty <-@ Val_type.I32;
   t @. Bindings.Extism_val.v <-@ u;
   t
 
@@ -17,7 +16,7 @@ let of_i64 (x : int64) : t =
   let u = Ctypes.make Bindings.Extism_val_union.t in
   u @. Bindings.Extism_val_union.i64 <-@ x;
   let t = Ctypes.make Bindings.Extism_val.t in
-  t @. Bindings.Extism_val.ty <-@ Type.I64;
+  t @. Bindings.Extism_val.ty <-@ Val_type.I64;
   t @. Bindings.Extism_val.v <-@ u;
   t
 
@@ -25,7 +24,7 @@ let of_f32 (x : float) : t =
   let u = Ctypes.make Bindings.Extism_val_union.t in
   u @. Bindings.Extism_val_union.f32 <-@ x;
   let t = Ctypes.make Bindings.Extism_val.t in
-  t @. Bindings.Extism_val.ty <-@ Type.F32;
+  t @. Bindings.Extism_val.ty <-@ Val_type.F32;
   t @. Bindings.Extism_val.v <-@ u;
   t
 
@@ -33,7 +32,7 @@ let of_f64 (x : float) : t =
   let u = Ctypes.make Bindings.Extism_val_union.t in
   u @. Bindings.Extism_val_union.f64 <-@ x;
   let t = Ctypes.make Bindings.Extism_val.t in
-  t @. Bindings.Extism_val.ty <-@ Type.F64;
+  t @. Bindings.Extism_val.ty <-@ Val_type.F64;
   t @. Bindings.Extism_val.v <-@ u;
   t
 

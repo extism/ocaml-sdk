@@ -5,6 +5,7 @@ module Function = Function
 module Host_function = Host_function
 module Type = Type
 module Val = Val
+module Val_type = Val_type
 
 let extism_version = Bindings.extism_version
 

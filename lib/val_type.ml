@@ -1,0 +1,1 @@
+include Bindings.Extism_val_type
