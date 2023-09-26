@@ -135,6 +135,18 @@ module Type : sig
   module Json : S with type t = Yojson.Safe.t
   (** Json type *)
 
+  module Unit : S with type t = unit
+  (** Unit type, noop *)
+
+  module Int64 : S with type t = int64
+  (** Int64 type *)
+
+  module Int32 : S with type t = int32
+  (** Int32 type *)
+
+  module Int : S with type t = int
+  (** OCaml [int] type, encoded as an int64 *)
+
   val string : (module S with type t = string)
   (** String type helper, this can be passed to a function expecting a wrapped
       module *)
@@ -149,6 +161,22 @@ module Type : sig
 
   val json : (module S with type t = Yojson.Safe.t)
   (** Json type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val unit : (module S with type t = unit)
+  (** Unit type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val int : (module S with type t = int)
+  (** Int type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val int64 : (module S with type t = Int64.t)
+  (** Int64 type helper, this can be passed to a function expecting a wrapped
+      module *)
+
+  val int32 : (module S with type t = Int32.t)
+  (** Int32 type helper, this can be passed to a function expecting a wrapped
       module *)
 end
 

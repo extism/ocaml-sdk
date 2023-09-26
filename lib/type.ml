@@ -5,6 +5,50 @@ module type S = sig
   val decode : Bigstringaf.t -> (t, Error.t) result
 end
 
+module Unit = struct
+  type t = unit
+
+  let encode () = ""
+  let decode _ = Ok ()
+end
+
+let unit = (module Unit : S with type t = unit)
+
+module Int32 = struct
+  type t = int32
+
+  let encode i =
+    let b = Bytes.create 4 in
+    Bytes.set_int32_le b 0 i;
+    String.of_bytes b
+
+  let decode bs = Ok (Bigstringaf.get_int32_le bs 0)
+end
+
+let int32 = (module Int32 : S with type t = Int32.t)
+
+module Int64 = struct
+  type t = int64
+
+  let encode i =
+    let b = Bytes.create 4 in
+    Bytes.set_int64_le b 0 i;
+    String.of_bytes b
+
+  let decode bs = Ok (Bigstringaf.get_int64_le bs 0)
+end
+
+let int64 = (module Int64 : S with type t = Int64.t)
+
+module Int = struct
+  type t = int
+
+  let encode i = Int64.encode (Stdlib.Int64.of_int i)
+  let decode bs = Int64.decode bs |> Result.map Stdlib.Int64.to_int
+end
+
+let int = (module Int : S with type t = int)
+
 module String = struct
   type t = string
 

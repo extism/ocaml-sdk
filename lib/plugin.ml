@@ -168,6 +168,21 @@ let cancel_handle { pointer; _ } =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else Cancel_handle.{ inner = Bindings.extism_plugin_cancel_handle pointer }
 
+let%test "cancel handle" =
+  let manifest = Manifest.(create [ Wasm.file "test/loop.wasm" ]) in
+  let plugin = of_manifest manifest |> Error.unwrap in
+  let handle = cancel_handle plugin in
+  let thr =
+    Thread.create
+      (fun () ->
+        Thread.delay 1.0;
+        Cancel_handle.cancel handle)
+      ()
+  in
+  let _ = call Type.unit Type.unit plugin ~name:"infinite_loop" () in
+  Thread.join thr;
+  true
+
 let id { pointer; _ } =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else
