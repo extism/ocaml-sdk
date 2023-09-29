@@ -6,29 +6,40 @@
     require libextism, installation information is available on
     {{:https://extism.org/docs/install} the Extism website}
 
+    - The {!Plugin} and {!Manifest} modules are the main modules to look at.
+    - {!Type} provides different types that can be encoded as input/output to
+      {!Plugin.call}
+    - {!Function} is used to define host functions and {!Host_function} is used
+      from inside host functions to access the plugin memory
+
+    {1 Basic example}
+
+    The following loads a {!Plugin} from a file on disk using {!Manifest} then
+    calls a function with a string and prints the string output:
+    {[
+      open Extism
+      let plugin = Plugin.of_manifest [ Manifest.Wasm.file filename ] |> Error.unwrap in
+      let res = Plugin.call_string plugin "function_name" "input data" |> Error.unwrap in
+      print_endline res
+    ]}
+
     {1 API} *)
 
-val extism_version : unit -> string
-(** Returns the libextism version, not the version of the OCaml library *)
-
 module Manifest = Extism_manifest
+(** The [Manifest] module is a reference to the [Extism_manifest] package, it
+    allows you to programatically construct Extism manifests.
 
-(** Extism error type *)
-module Error : sig
-  type t = [ `Msg of string ]
-  (** Error type *)
+    For example, create a manifest from a file on disk:
+    {[
+      let manifest = Manifest.create [ Manifest.Wasm.file myPath ]
+    ]}
+    Or from a URL:
+    {[
+      let manifest = Manifest.create [ Manifest.Wasm.url myUrl ]
+    ]}*)
 
-  exception Error of t
-  (** Exception type *)
-
-  val unwrap : ('a, t) result -> 'a
-  (** Like [Result.get_ok] for {!t} *)
-
-  val throw : t -> 'a
-  (** Raise {!t} as an exception *)
-end
-
-(** [Val_type] enumerates every possible argument/result type *)
+(** [Val_type] enumerates the available Wasm types, this should only be used
+    when implementing host functions *)
 module Val_type : sig
   type t =
     | I32
@@ -40,7 +51,11 @@ module Val_type : sig
     | ExternRef  (** Value type *)
 
   val of_int : int -> t
+  (** Convert from [int] to {!t},
+      @raise Invalid_argument if the integer isn't valid *)
+
   val to_int : t -> int
+  (** Convert from {!t} to [int] *)
 end
 
 (** [Val] represents low-level WebAssembly values *)
@@ -51,66 +66,68 @@ module Val : sig
   (** [Val.Array] is used for input/output parameters for host functions *)
   module Array : sig
     type t = Val.t Ctypes.CArray.t
-    (** [Val_array] type *)
+    (** Array of {!Val.t} *)
 
     val get : t -> int -> Val.t
-    (** Get an index *)
+    (** Get {!Val.t} at index index *)
 
     val set : t -> int -> Val.t -> unit
-    (** Set an index *)
+    (** Set set the {!Val.t} at an index *)
 
     val length : t -> int
-    (** Get the number of items in a [Val_array]*)
+    (** Get the number of items in a {! Val.Array.t}*)
 
     val ( .$[] ) : t -> int -> Val.t
-    (** Syntax for [get] *)
+    (** Syntax for {!Val.Array.get} *)
 
     val ( .$[]<- ) : t -> int -> Val.t -> unit
-    (** Syntax for [set] *)
+    (** Syntax for {!Val.Array.set} *)
   end
 
   val ty : t -> Val_type.t
   (** [ty v] returns the {! Val_type.t} for the value [v] *)
 
   val of_i32 : int32 -> t
-  (** Create an i32 [Val] *)
+  (** Create an i32 {!Val.t} *)
 
   val of_i64 : int64 -> t
-  (** Create an i64 [Val] *)
+  (** Create an i64 {!Val} *)
 
   val of_f32 : float -> t
-  (** Create an f32 [Val] *)
+  (** Create an f32 {!Val} *)
 
   val of_f64 : float -> t
-  (** Create an f64 [Val] *)
+  (** Create an f64 {!Val} *)
 
   val to_i32 : t -> int32 option
-  (** Get an int32 from [Val] if the type matches *)
+  (** Get an int32 from {!Val} if the type matches *)
 
   val to_i64 : t -> int64 option
-  (** Get an int64 from [Val] if the type matches *)
+  (** Get an int64 from {!Val} if the type matches *)
 
   val to_f32 : t -> float option
-  (** Get a f32 from [Val] if the type matches *)
+  (** Get a f32 from {!Val} if the type matches *)
 
   val to_f64 : t -> float option
-  (** Get an f64 from [Val] if the type matches *)
+  (** Get an f64 from {!Val} if the type matches *)
 
   val to_i32_exn : t -> int32
-  (** Same as [to_i32] but raises an exception if the types don't match*)
+  (** Same as {!to_i32} but raises [Invalid_argument] if the types don't match*)
 
   val to_i64_exn : t -> int64
-  (** Same as [to_i64] but raises an exception if the types don't match*)
+  (** Same as {!to_i64} but raises [Invalid_argument] if the types don't match*)
 
   val to_f32_exn : t -> float
-  (** Same as [to_f32] but raises an exception if the types don't match*)
+  (** Same as {!to_f32} but raises [Invalid_argument] if the types don't match*)
 
   val to_f64_exn : t -> float
-  (** Same as [to_f64] but raises an exception if the types don't match*)
+  (** Same as {!to_f64} but raises [Invalid_argument] if the types don't match*)
 end
 
 (** [Type] defines conversions from OCaml values in and out of Extism memory *)
 module Type : sig
+  (** The interface for all types that can be converted between OCaml and Extism
+      host memory *)
   module type S = sig
     type t
 
@@ -153,52 +170,47 @@ module Type : sig
   module Float64 : S with type t = float
   (** 64-bit float type *)
 
+  (** {2 Packed modules}
+      The following are packed modules that can be passed directly to a function
+      expecting a [(module S: Type)] **)
+
   val string : (module S with type t = string)
-  (** String type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!String} *)
 
   val bytes : (module S with type t = bytes)
-  (** Bytes type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Bytes} *)
 
   val bigstring : (module S with type t = Bigstringaf.t)
-  (** Bigstring type helper, this can be passed to a function expecting a
-      wrapped module *)
+  (** {!Bigstring} *)
 
   val json : (module S with type t = Yojson.Safe.t)
-  (** Json type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Json} *)
 
   val unit : (module S with type t = unit)
-  (** Unit type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Unit} *)
 
   val int : (module S with type t = int)
-  (** Int type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Int} *)
 
   val int64 : (module S with type t = Int64.t)
-  (** Int64 type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Int64} *)
 
   val int32 : (module S with type t = Int32.t)
-  (** Int32 type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Int32} *)
 
   val float32 : (module S with type t = Float32.t)
-  (** Float32 type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Float32} *)
 
   val float64 : (module S with type t = Float64.t)
-  (** Float64 type helper, this can be passed to a function expecting a wrapped
-      module *)
+  (** {!Float64} *)
 end
 
-(** [Host_function] represents the plugin that is currently running, it should
-    it should only be used from a host function *)
+(** [Host_function] represents the plugin that is currently running from inside
+    a host function definition *)
 module Host_function : sig
   type t
-  (** Opaque type, wraps [ExtismCurrentPlugin] *)
+  (** Opaque type, wraps [ExtismCurrentPlugin], this value should never be
+      stored, it is only valid from inside the host function definition *)
 
   val params : t -> Val.Array.t
   (** Get host function parameters array *)
@@ -295,7 +307,7 @@ module Function : sig
     (Host_function.t -> 'a -> unit) ->
     t
   (** Create a new function, [Function.v name ~params ~results ~user_data f]
-      creates a new [Function] with the given [name], [params] specifies the
+      creates a new {!Function.t} with the given [name], [params] specifies the
       argument types, [results] specifies the return types, [user_data] is used
       to pass arbitrary OCaml values into the function and [f] is the OCaml
       function that will be called. *)
@@ -303,10 +315,6 @@ module Function : sig
   val with_namespace : t -> string -> t
   (** Update a function's namespace *)
 end
-
-val set_log_file :
-  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] -> string -> bool
-(** Set the log file and level for all Extism plugins *)
 
 (** [Plugins] contain functions that can be called *)
 module Plugin : sig
@@ -325,7 +333,7 @@ module Plugin : sig
     ?functions:Function.t list ->
     Manifest.t ->
     (t, Error.t) result
-  (** Make a new plugin from a [Manifest] *)
+  (** Make a new plugin from a {!Manifest} *)
 
   val call_bigstring :
     t -> name:string -> Bigstringaf.t -> (Bigstringaf.t, Error.t) result
@@ -341,8 +349,8 @@ module Plugin : sig
     name:string ->
     'a ->
     ('b, Error.t) result
-  (** [call t ~name input_type output_type input] executes a function with typed
-      input and output *)
+  (** [call input_type output_type t ~name input] executes a function with input
+      and output types defined in {!Type} *)
 
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a
@@ -365,6 +373,29 @@ module Plugin : sig
   (** Get the plugin UUID *)
 end
 
+val set_log_file :
+  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] -> string -> bool
+(** Set the log file and level for all Extism plugins, the names [stdout] or
+    [stderr] can be used to write to the terminal *)
+
+(** Extism error type *)
+module Error : sig
+  type t = [ `Msg of string ]
+  (** Error type *)
+
+  exception Error of t
+  (** Exception type *)
+
+  val unwrap : ('a, t) result -> 'a
+  (** Like [Result.get_ok] for {!t} *)
+
+  val throw : t -> 'a
+  (** Raise {!t} as an exception *)
+end
+
 val with_plugin : (Plugin.t -> 'a) -> Plugin.t -> 'a
-(** Create a Plugin that can be used within the scope of the provided callback,
-    it will automatically be freed when the function returns *)
+(** [with_plugin f plugin] uses [Fun.protect] to ensure that a plugin is freed
+    when [f] finished executing *)
+
+val extism_version : unit -> string
+(** Returns the libextism version, not the version of the OCaml library *)

@@ -1,14 +1,12 @@
 (executables
-  (names runner)
-  (libraries extism))
+ (names runner)
+ (libraries extism))
 
 (alias
  (name examples)
- (deps
-  runner.exe))
+ (deps runner.exe))
 
 (alias
  (name runtest)
  (package extism)
- (deps
-  runner.exe))
+ (deps runner.exe))

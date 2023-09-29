@@ -97,8 +97,8 @@ let of_file filename =
   let j = Yojson.Safe.from_file filename in
   t_of_yojson j
 
-let with_config t config = { t with config = Some config }
-let with_memory_max t max = { t with memory = Some { max_pages = Some max } }
+let with_config config t = { t with config = Some config }
+let with_memory_max max t = { t with memory = Some { max_pages = Some max } }
 
 let%test "rountrip" =
   let config = [ ("a", Some "b"); ("b", Some "c") ] in

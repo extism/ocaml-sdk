@@ -1,7 +1,27 @@
 (** Extism manifest
 
     This package provides an OCaml interface for the
-    {{:https://extism.org/docs/concepts/manifest} Extism manifest} *)
+    {{:https://extism.org/docs/concepts/manifest} Extism manifest}
+
+    {1 Examples}
+    Create a manifest from a file on disk:
+    {[
+      Manifest.create [ Manifest.Wasm.file myPath ]
+    ]}
+
+    Or from a URL:
+    {[
+      Manifest.create [ Manifest.Wasm.url myUrl ]
+    ]}
+
+    Create a manifest from a file on disk with a timeout of [1s] set and
+    [memory.max_pages] set to 100:
+    {[
+      Manifest.create ~timeout_ms:1000 [ Manifest.Wasm.file ]
+      |> Manifest.with_memory_max 100
+    ]}
+
+    {1 API} *)
 
 type memory_options = {
   max_pages : int option;
@@ -53,10 +73,10 @@ module Wasm : sig
   type t = File of file | Data of data | Url of url [@@deriving yojson]
 
   val file : ?name:string -> ?hash:string -> string -> t
-  (** Create [wasm] from filename *)
+  (** Create {!t} from filename *)
 
   val data : ?name:string -> ?hash:string -> string -> t
-  (** Create [wasm] from WebAssembly module data *)
+  (** Create {!t} from WebAssembly module data *)
 
   val url :
     ?headers:(string * string) list ->
@@ -65,7 +85,7 @@ module Wasm : sig
     ?hash:string ->
     string ->
     t
-  (** Create [wasm] from URL *)
+  (** Create {!t} from URL *)
 end
 
 type t = {
@@ -79,7 +99,7 @@ type t = {
   allowed_hosts : string list option;
       (** A list of allowed hosts when using Extism HTTP functions *)
   allowed_paths : dict option;
-      (** A dict containing a mapping from local_path:guest_path *)
+      (** A dict containing a mapping from [local_path:guest_path] *)
   timeout_ms : int option;  (** Plugin timeout in milliseconds *)
 }
 [@@deriving yojson]
@@ -93,7 +113,7 @@ val create :
   ?timeout_ms:int ->
   Wasm.t list ->
   t
-(** Create new manifest *)
+(** Create new {!t} *)
 
 val to_json : t -> string
 (** Convert manifest to JSON *)
@@ -104,8 +124,8 @@ val of_json : string -> t
 val of_file : string -> t
 (** Read manifest from JSON file *)
 
-val with_config : t -> config -> t
+val with_config : config -> t -> t
 (** Returns a new {!t} with the [config] field updated *)
 
-val with_memory_max : t -> int -> t
+val with_memory_max : int -> t -> t
 (** Returns a new {!t} with [memory.max_pages] updates *)
