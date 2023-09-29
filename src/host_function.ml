@@ -4,6 +4,9 @@ type t = { pointer : unit ptr; params : Val.Array.t; results : Val.Array.t }
 
 let params { params; _ } = params
 let results { results; _ } = results
+let param { params; _ } index = CArray.get params index
+let result { results; _ } index = CArray.get results index
+let set_result { results; _ } index v = CArray.set results index v
 
 type memory_handle = { offs : Unsigned.UInt64.t; len : Unsigned.UInt64.t }
 

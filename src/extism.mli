@@ -203,8 +203,17 @@ module Host_function : sig
   val params : t -> Val.Array.t
   (** Get host function parameters array *)
 
+  val param : t -> int -> Val.t
+  (** [param plugin n] returns the [n]th param from [plugin] *)
+
   val results : t -> Val.Array.t
   (** Get host function results array *)
+
+  val result : t -> int -> Val.t
+  (** [result plugin n] returns the [n]th result from [plugin] *)
+
+  val set_result : t -> int -> Val.t -> unit
+  (** [set_result plugin n v] updates the [n]th result to [v] *)
 
   type memory_handle = { offs : Unsigned.UInt64.t; len : Unsigned.UInt64.t }
   (** Represents a block of guest memory *)
