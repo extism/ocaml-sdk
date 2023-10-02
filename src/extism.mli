@@ -248,10 +248,10 @@ module Host_function : sig
   (** Load a parameter directly from memory *)
 
   val input :
-    t -> ?index:int -> (module Type.S with type t = 'a) -> ('a, Error.t) result
+    (module Type.S with type t = 'a) -> ?index:int -> t -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
-  val output : t -> ?index:int -> (module Type.S with type t = 'a) -> 'a -> unit
+  val output : (module Type.S with type t = 'a) -> ?index:int -> t -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
   (** Some helpter functions for reading/writing memory *)

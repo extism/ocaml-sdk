@@ -93,10 +93,10 @@ let input_bigstring ?(index = 0) t =
   let mem = Memory_handle.of_val_exn t inp in
   Memory_handle.get_bigstring t mem
 
-let output (type a) t ?index (module C : Type.S with type t = a) (a : a) =
+let output (type a) (module C : Type.S with type t = a) ?index t (a : a) =
   let s = C.encode a in
   output_string t ?index s
 
-let input (type a) t ?index (module C : Type.S with type t = a) =
+let input (type a) (module C : Type.S with type t = a) ?index t =
   let bs = input_bigstring ?index t in
   C.decode bs

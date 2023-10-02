@@ -32,14 +32,14 @@ let hello_world =
   @@ fun plugin user_data ->
 
   (* Get the input *)
-  let s = Host_function.input plugin Type.string in
+  let s = Host_function.input Type.string plugin in
   print_endline ("Original input: " ^ Error.unwrap s);
 
   (* Print the userdata *)
   let () = print_endline user_data in
 
   (* Return a JSON value *)
-  Host_function.output plugin Type.json (`Assoc [ ("count", `Int 999) ])
+  Host_function.output Type.json plugin (`Assoc [ ("count", `Int 999) ])
 
 let () =
   (* Create a manifest using a file from disk *)

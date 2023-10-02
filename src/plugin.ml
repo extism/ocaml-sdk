@@ -131,11 +131,11 @@ let%test "call_functions" =
     Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
       ~user_data:"Hello again!"
     @@ fun plugin user_data ->
-    let s = Host_function.input plugin Type.string |> Result.get_ok in
+    let s = Host_function.input Type.string plugin |> Result.get_ok in
     let () = print_endline "Hello from OCaml!" in
     let () = print_endline user_data in
     let () = print_endline s in
-    Host_function.output plugin Type.json (`Assoc [ ("count", `Int 999) ])
+    Host_function.output Type.json plugin (`Assoc [ ("count", `Int 999) ])
   in
   let functions = [ hello_world ] in
   let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
