@@ -16,11 +16,22 @@ jobs:
       - name: Checkout tree
         uses: actions/checkout@v4
 
-      - name: Set-up OCaml 5.0
+      - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v2
         with:
           dune-cache: true
           ocaml-compiler: "5.x"
 
+      - run: opam install . --deps-only --with-doc
+        shell: bash
+      - run: opam depext --install odoc
+        shell: bash
+      - run: opam exec -- dune build @doc
+        shell: bash
       - name: Deploy odoc to GitHub Pages
-        uses: ocaml/setup-ocaml/deploy-doc@v2
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: "_build/default/_doc/_html"
+          destination_dir: ""
+
