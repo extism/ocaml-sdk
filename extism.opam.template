@@ -1,5 +1,2 @@
 build-env: [EXTISM_TEST_NO_LIB = ""]
 post-messages: ["See https://extism.org/docs/install/ for information about installing libextism"]
-pin-depends: [
-  [ "mdx.dev" "git+https://github.com/realworldocaml/mdx#9586620d81c923b98819042f67a8ce664b2552ac" ]
-]
