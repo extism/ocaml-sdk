@@ -30,7 +30,7 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           dune-cache: true
-          ocaml-compiler: "5.x"
+          ocaml-compiler: "5.1"
 
       - run: opam install . --deps-only --with-test --with-doc
         shell: bash
@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: '_build/default/_doc/_html'
+          path: './_build/default/_doc/_html'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
