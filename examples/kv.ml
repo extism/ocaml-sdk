@@ -1,3 +1,4 @@
+(* $MDX part-begin=hostFnIntro *)
 open Extism
 
 let url =
@@ -5,7 +6,9 @@ let url =
 
 let wasm = Manifest.Wasm.url url
 let manifest = Manifest.create [ wasm ]
+(* $MDX part-end *)
 
+(* $MDX part-begin=hostFnDef *)
 let make_kv_plugin () =
   (* pretend this is Redis or something :) *)
   let kv_store = Hashtbl.create 8 in
@@ -36,6 +39,7 @@ let make_kv_plugin () =
 
   (* Create a plugin from the manifest with the kv host functions *)
   Plugin.of_manifest_exn ~functions:[ kv_read; kv_write ] ~wasi:true manifest
+(* $MDX part-end *)
 
 let () =
   let plugin = make_kv_plugin () in

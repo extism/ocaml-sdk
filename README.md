@@ -61,6 +61,7 @@ let plugin = Plugin.of_manifest_exn manifest
 
 This plug-in was written in Rust and it does one thing, it counts vowels in a string. As such, it exposes one "export" function: `count_vowels`. We can call exports using [Extism.Plugin.call](https://extism.github.io/ocaml-sdk/extism/Extism/Plugin/index.html#val-call):
 
+<!-- $MDX skip -->
 ```ocaml
 # Plugin.call_string_exn plugin ~name:"count_vowels" "Hello, world!";;
 - : string = "{\"count\":3,\"total\":3,\"vowels\":\"aeiouAEIOU\"}"
@@ -71,6 +72,7 @@ All exports have a simple interface of bytes-in and bytes-out. This plug-in happ
 This library also allows for calls to be typed, when the input and output types are not strings. Instead of getting the output as a JSON encoded string, we can
 convert it directly to `Yojson.Safe.t`:
 
+<!-- $MDX skip -->
 ```ocaml
 # Plugin.call_exn Type.string Type.json plugin ~name:"count_vowels" "Hello, world!";;
 - : Yojson.Safe.t =
@@ -84,6 +86,7 @@ See [Extism.Type.S](https://extism.github.io/ocaml-sdk/extism/Extism/Type/module
 
 Plug-ins may be stateful or stateless. Plug-ins can maintain state b/w calls by the use of variables. Our count vowels plug-in remembers the total number of vowels it's ever counted in the "total" key in the result. You can see this by making subsequent calls to the export:
 
+<!-- $MDX skip -->
 ```ocaml
 # Plugin.call_string_exn plugin ~name:"count_vowels" "Hello, world!" |> print_endline;;
 {"count":3,"total":9,"vowels":"aeiouAEIOU"}
@@ -99,6 +102,7 @@ These variables will persist until this plug-in is freed or you initialize a new
 
 Plug-ins may optionally take a configuration object. This is a static way to configure the plug-in. Our count-vowels plugin takes an optional configuration to change out which characters are considered vowels. Example:
 
+<!-- $MDX skip -->
 ```ocaml
 # let manifest = Manifest.create [wasm];;
 val manifest : Extism_manifest.t =
@@ -133,13 +137,15 @@ Wasm can't use our KV store on it's own. This is where [Host Functions](https://
 
 Let's load the manifest like usual but load up this `count_vowels_kvstore` plug-in:
 
-<!-- $MDX env=host-functions -->
+<!-- $MDX file=examples/kv.ml,part=hostFnIntro -->
 ```ocaml
 open Extism
 
-let url = "https://github.com/extism/plugins/releases/latest/download/count_vowels_kvstore.wasm"
+let url =
+  "https://github.com/extism/plugins/releases/latest/download/count_vowels_kvstore.wasm"
+
 let wasm = Manifest.Wasm.url url
-let manifest = Manifest.create [wasm]
+let manifest = Manifest.create [ wasm ]
 ```
 
 > *Note*: The source code for this is [here](https://github.com/extism/plugins/blob/main/count_vowels_kvstore/src/lib.rs) and is written in rust, but it could be written in any of our PDK languages.
@@ -150,7 +156,7 @@ Using [Extism.Function](https://extism.github.io/ocaml-sdk/extism/Extism/Functio
 
 We want to expose two functions to our plugin (in OCaml types): `val kv_write: string -> string -> unit` which writes a bytes value to a key and `val kv_read: string -> string` which reads the bytes at the given `key`.
 
-<!-- $MDX env=host-functions -->
+<!-- $MDX file=examples/kv.ml,part=hostFnDef -->
 ```ocaml
 let make_kv_plugin () =
   (* pretend this is Redis or something :) *)
@@ -158,8 +164,8 @@ let make_kv_plugin () =
 
   let kv_read =
     let open Val_type in
-    Function.create "kv_read" ~params:[ I64 ] ~results:[ I64 ] ~user_data:kv_store
-    @@ fun plugin kv_store ->
+    Function.create "kv_read" ~params:[ I64 ] ~results:[ I64 ] ~user_data:()
+    @@ fun plugin () ->
     let key = Host_function.input_string plugin in
     Printf.printf "Reading from key=%s\n" key;
     let value =
@@ -171,8 +177,9 @@ let make_kv_plugin () =
 
   let kv_write =
     let open Val_type in
-    Function.create "kv_write" ~params:[ I64; I64 ] ~results:[] ~user_data:kv_store
-    @@ fun plugin kv_store ->
+    Function.create "kv_write" ~params:[ I64; I64 ] ~results:[] ~user_data:()
+    @@ fun plugin () ->
+    print_endline "AAA";
     let key = Host_function.input_string ~index:0 plugin in
     let value = Host_function.input_string ~index:1 plugin in
     Printf.printf "Write value=%s to key=%s\n" value key;
@@ -188,7 +195,7 @@ let make_kv_plugin () =
 
 Now we can invoke the event:
 
-<!-- $MDX env=host-functions -->
+<!-- $MDX skip,env=host-functions -->
 ```ocaml
 # let plugin = make_kv_plugin ();;
 val plugin : Plugin.t = <abstr>

@@ -1,6 +1,6 @@
 (dirs :standard \ runtime)
 
-;(mdx
-; (package extism)
-; (libraries extism-manifest extism yojson)
-; (deps wasm/code.wasm))
+(mdx
+ (package extism)
+ (libraries extism-manifest extism yojson)
+ (deps wasm/code.wasm))
