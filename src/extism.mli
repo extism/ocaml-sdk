@@ -16,11 +16,18 @@
 
     The following loads a {!Plugin} from a file on disk using {!Manifest} then
     calls a function with a string and prints the string output:
-    {[
+    {@ocaml[
       open Extism
-      let plugin = Plugin.of_manifest [ Manifest.Wasm.file filename ] |> Error.unwrap in
-      let res = Plugin.call_string plugin "function_name" "input data" |> Error.unwrap in
-      print_endline res
+
+      let () =
+        let plugin =
+          Plugin.of_manifest_exn
+          @@ Manifest.create [ Manifest.Wasm.file "test/code.wasm" ]
+        in
+        let res =
+          Plugin.call_string_exn plugin ~name:"count_vowels" "input data"
+        in
+        print_endline res
     ]}
 
     {1 API} *)
@@ -30,12 +37,19 @@ module Manifest = Extism_manifest
     allows you to programatically construct Extism manifests.
 
     For example, create a manifest from a file on disk:
-    {[
-      let manifest = Manifest.create [ Manifest.Wasm.file myPath ]
+    {@ocaml[
+      open Extism
+
+      let manifest = Manifest.create [ Manifest.Wasm.file "test/code.wasm" ]
     ]}
     Or from a URL:
-    {[
-      let manifest = Manifest.create [ Manifest.Wasm.url myUrl ]
+    {@ocaml[
+      open Extism
+
+      let url =
+        "https://github.com/extism/plugins/releases/latest/download/count_vowels.wasm"
+
+      let manifest = Manifest.create [ Manifest.Wasm.url url ]
     ]}*)
 
 (** [Val_type] enumerates the available Wasm types, this should only be used
@@ -251,6 +265,9 @@ module Host_function : sig
     (module Type.S with type t = 'a) -> ?index:int -> t -> ('a, Error.t) result
   (** Get parameter from params array at [index] and return the converted result *)
 
+  val input_exn : (module Type.S with type t = 'a) -> ?index:int -> t -> 'a
+  (** Similar to {!input_exn} but raises an exception *)
+
   val output : (module Type.S with type t = 'a) -> ?index:int -> t -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
@@ -328,6 +345,14 @@ module Plugin : sig
     (t, Error.t) result
   (** Make a new plugin from raw WebAssembly or JSON encoded manifest *)
 
+  val create_exn :
+    ?config:Manifest.config ->
+    ?wasi:bool ->
+    ?functions:Function.t list ->
+    string ->
+    t
+  (** Make a new plugin from raw WebAssembly or JSON encoded manifest *)
+
   val of_manifest :
     ?wasi:bool ->
     ?functions:Function.t list ->
@@ -335,12 +360,22 @@ module Plugin : sig
     (t, Error.t) result
   (** Make a new plugin from a {!Manifest} *)
 
+  val of_manifest_exn :
+    ?wasi:bool -> ?functions:Function.t list -> Manifest.t -> t
+  (** Make a new plugin from a {!Manifest} *)
+
   val call_bigstring :
     t -> name:string -> Bigstringaf.t -> (Bigstringaf.t, Error.t) result
   (** Call a function, uses [Bigstringaf.t] for input/output *)
 
+  val call_bigstring_exn : t -> name:string -> Bigstringaf.t -> Bigstringaf.t
+  (** Similar to {!call_bigstring} but raises an exception using {!Error.unwrap} *)
+
   val call_string : t -> name:string -> string -> (string, Error.t) result
   (** Call a function, uses [string] for input/output *)
+
+  val call_string_exn : t -> name:string -> string -> string
+  (** Similar to {!call_string} but raises an exception using {!Error.unwrap} *)
 
   val call :
     (module Type.S with type t = 'a) ->
@@ -351,6 +386,15 @@ module Plugin : sig
     ('b, Error.t) result
   (** [call input_type output_type t ~name input] executes a function with input
       and output types defined in {!Type} *)
+
+  val call_exn :
+    (module Type.S with type t = 'a) ->
+    (module Type.S with type t = 'b) ->
+    t ->
+    name:string ->
+    'a ->
+    'b
+  (** Similar to {!call} but raises an exception using {!Error.unwrap} *)
 
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a

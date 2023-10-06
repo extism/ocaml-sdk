@@ -62,9 +62,15 @@ let create ?config ?(wasi = false) ?(functions = []) wasm =
     if not (set_config t config) then Error (`Msg "call to set_config failed")
     else Ok t
 
+let create_exn ?config ?wasi ?functions wasm =
+  create ?config ?wasi ?functions wasm |> Error.unwrap
+
 let of_manifest ?wasi ?functions manifest =
   let data = Manifest.to_json manifest in
   create ?wasi ?functions data
+
+let of_manifest_exn ?wasi ?functions manifest =
+  of_manifest ?wasi ?functions manifest |> Error.unwrap
 
 let%test "free plugin" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
@@ -95,6 +101,9 @@ let call_bigstring (t : t) ~name input =
   let ptr = Ctypes.bigarray_start Ctypes.array1 input in
   call' Bindings.extism_plugin_call t ~name ptr len
 
+let call_bigstring_exn t ~name input =
+  call_bigstring t ~name input |> Error.unwrap
+
 let%test "call_bigstring" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
@@ -107,6 +116,8 @@ let call_string (t : t) ~name input =
   call' Bindings.extism_plugin_call_s t ~name input (Unsigned.UInt64.of_int len)
   |> Result.map Bigstringaf.to_string
 
+let call_string_exn t ~name input = call_string t ~name input |> Error.unwrap
+
 let call (type a b) (module In : Type.S with type t = a)
     (module Out : Type.S with type t = b) t ~name (a : a) : (b, Error.t) result
     =
@@ -118,6 +129,8 @@ let call (type a b) (module In : Type.S with type t = a)
   with
   | Ok x -> Out.decode x
   | Error e -> Error e
+
+let call_exn a b t ~name input = call a b t ~name input |> Error.unwrap
 
 let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in

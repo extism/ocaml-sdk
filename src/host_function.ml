@@ -100,3 +100,5 @@ let output (type a) (module C : Type.S with type t = a) ?index t (a : a) =
 let input (type a) (module C : Type.S with type t = a) ?index t =
   let bs = input_bigstring ?index t in
   C.decode bs
+
+let input_exn a ?index t = input a ?index t |> Error.unwrap

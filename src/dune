@@ -6,3 +6,8 @@
  (libraries ctypes.foreign bigstringaf extism-manifest uuidm)
  (preprocess
   (pps ppx_yojson_conv ppx_inline_test)))
+
+(mdx
+ (libraries extism-manifest extism yojson)
+ (deps test/code.wasm)
+ (files :standard - *.mli))
