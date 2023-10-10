@@ -3,4 +3,4 @@
 (mdx
  (package extism)
  (libraries extism-manifest extism yojson)
- (deps wasm/code-functions.wasm))
+ (deps wasm/code.wasm))

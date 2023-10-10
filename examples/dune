@@ -1,10 +1,10 @@
 (executables
- (names runner)
+ (names runner kv)
  (libraries extism))
 
 (alias
  (name examples)
- (deps runner.exe))
+ (deps runner.exe kv.exe))
 
 (alias
  (name runtest)

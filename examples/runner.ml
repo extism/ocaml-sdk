@@ -32,9 +32,7 @@ let load_plugins path : (string * Plugin.t) Seq.t =
          let name = Filename.chop_extension filename in
          let path = Filename.concat path filename in
          let manifest = Manifest.create [ Manifest.Wasm.file path ] in
-         let plugin =
-           Plugin.of_manifest ~functions ~wasi:true manifest |> Error.unwrap
-         in
+         let plugin = Plugin.of_manifest_exn ~functions ~wasi:true manifest in
          (name, plugin))
 
 (** Handle command line arguments *)
@@ -51,5 +49,4 @@ let () =
     let input = if Array.length Sys.argv > 4 then Sys.argv.(4) else "" in
     let plugins = Hashtbl.of_seq (load_plugins path) in
     let plugin = Hashtbl.find plugins plugin_name in
-    Plugin.call_string plugin ~name:function_name input
-    |> Error.unwrap |> print_endline
+    Plugin.call_string_exn plugin ~name:function_name input |> print_endline
