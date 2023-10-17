@@ -201,12 +201,12 @@ Now we can invoke the event:
 val plugin : Plugin.t = <abstr>
 # Extism.Plugin.call_string_exn plugin ~name:"count_vowels" "Hello, world" |> print_endline;;
 Reading from key=count-vowels
-Write value=    to key=count-vowels
+Write value=^C^@^@^@ to key=count-vowels
 {"count":3,"total":3,"vowels":"aeiouAEIOU"}
 - : unit = ()
 # Extism.Plugin.call_string_exn plugin ~name:"count_vowels" "Hello, world" |> print_endline;;
 Reading from key=count-vowels
-Write value=    to key=count-vowels
+Write value=^F^@^@^@ to key=count-vowels
 {"count":3,"total":6,"vowels":"aeiouAEIOU"}
 - : unit = ()
 ```
