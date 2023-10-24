@@ -68,7 +68,7 @@ let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
     match Plugin.call_string plugin ~name:func_name input with
     | Ok res -> print_endline res
     | Error (`Msg e) ->
-        Printf.eprintf "ERROR Unable to call function: %s" e;
+        Printf.eprintf "ERROR call encountered an error: %s" e;
         exit 2
   done
 
