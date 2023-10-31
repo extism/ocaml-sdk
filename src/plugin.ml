@@ -109,7 +109,8 @@ let%test "call_bigstring" =
   let plugin = of_manifest manifest |> Error.unwrap in
   call_bigstring plugin ~name:"count_vowels"
     (Bigstringaf.of_string ~off:0 ~len:14 "this is a test")
-  |> Error.unwrap |> Bigstringaf.to_string = "{\"count\": 4}"
+  |> Error.unwrap |> Bigstringaf.to_string
+  = "{\"count\":4,\"total\":4,\"vowels\":\"aeiouAEIOU\"}"
 
 let call_string (t : t) ~name input =
   let len = String.length input in
@@ -136,7 +137,7 @@ let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
   call Type.string Type.string plugin ~name:"count_vowels" "this is a test"
-  |> Error.unwrap = "{\"count\": 4}"
+  |> Error.unwrap = "{\"count\":4,\"total\":4,\"vowels\":\"aeiouAEIOU\"}"
 
 let%test "call_functions" =
   let open Val_type in
