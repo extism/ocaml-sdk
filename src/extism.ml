@@ -20,7 +20,7 @@ let%test "with_plugin" =
       (fun plugin ->
         Plugin.call Type.string Type.string plugin ~name:"count_vowels"
           "this is a test"
-        |> Error.unwrap = "{\"count\": 4}")
+        |> Error.unwrap = "{\"count\":4,\"total\":4,\"vowels\":\"aeiouAEIOU\"}")
       plugin
   in
   Plugin.free plugin;
