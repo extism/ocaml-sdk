@@ -15,7 +15,7 @@ let make_kv_plugin () =
 
   let kv_read =
     let open Val_type in
-    Function.create "kv_read" ~params:[ I64 ] ~results:[ I64 ] ~user_data:()
+    Function.create "kv_read" ~params:[ ptr ] ~results:[ ptr ] ~user_data:()
     @@ fun plugin () ->
     let key = Host_function.input_string plugin in
     Printf.printf "Reading from key=%s\n" key;
@@ -28,7 +28,7 @@ let make_kv_plugin () =
 
   let kv_write =
     let open Val_type in
-    Function.create "kv_write" ~params:[ I64; I64 ] ~results:[] ~user_data:()
+    Function.create "kv_write" ~params:[ ptr; ptr ] ~results:[] ~user_data:()
     @@ fun plugin () ->
     let key = Host_function.input_string ~index:0 plugin in
     let value = Host_function.input_string ~index:1 plugin in

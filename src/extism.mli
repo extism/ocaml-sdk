@@ -64,6 +64,9 @@ module Val_type : sig
     | FuncRef
     | ExternRef  (** Value type *)
 
+  val ptr : t
+  (** An alias for [I64] to signify an Extism pointer value *)
+
   val of_int : int -> t
   (** Convert from [int] to {!t},
       @raise Invalid_argument if the integer isn't valid *)
