@@ -12,8 +12,8 @@ let functions =
     let v = Host_function.param plugin 0 in
     Host_function.set_result plugin 0 v
   in
-  let params = [ Val_type.I64 ] in
-  let results = [ Val_type.I64 ] in
+  let params = [ Val_type.ptr ] in
+  let results = [ Val_type.ptr ] in
   [
     Function.create "hello_world" ~user_data:() ~params ~results id;
     Function.create "transform_string" ~user_data:() ~params ~results id;
