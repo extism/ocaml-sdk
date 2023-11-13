@@ -126,6 +126,17 @@ let extism_plugin_output_data =
 let extism_log_file =
   fn "extism_log_file" (string @-> string_opt @-> returning bool)
 
+let log_callback =
+  Foreign.dynamic_funptr ~runtime_lock:true
+    Ctypes.(ptr char @-> uintptr_t @-> returning void)
+
+let extism_log_callback name f =
+  let (module Callback) = log_callback in
+  let cb = Callback.of_fun f in
+  fn "extism_log_callback"
+    (string_opt @-> Callback.t @-> returning bool)
+    name cb
+
 let extism_version = fn "extism_version" (void @-> returning string)
 let extism_plugin_free = fn "extism_plugin_free" (plugin @-> returning void)
 
