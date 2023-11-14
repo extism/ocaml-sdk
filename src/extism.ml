@@ -41,14 +41,33 @@ let parse_level =
 let set_log_file ?level filename =
   Bindings.extism_log_file filename (parse_level level)
 
-let set_log_custom ?level () = Bindings.extism_log_custom (parse_level level)
+type drain_logs = unit -> unit
 
-let drain_logs f =
-  let fx s length =
-    let s = Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length) in
-    f s
-  in
-  Bindings.extism_log_drain fx
+let set_log_custom ?level f =
+  if Bindings.extism_log_custom (parse_level level) then
+    let x () =
+      let fx s length =
+        let s =
+          Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length)
+        in
+        f s
+      in
+      Bindings.extism_log_drain fx
+    in
+    let () =
+      Gc.finalise_last
+        (fun () ->
+          let fx s length =
+            let s =
+              Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length)
+            in
+            f s
+          in
+          Bindings.extism_log_drain fx)
+        x
+    in
+    x
+  else Error.throw (`Msg "Unable to set custom logging")
 
 let%test _ =
   let log_file =
@@ -57,15 +76,19 @@ let%test _ =
   in
   if log_file then set_log_file ~level:`Trace "stderr"
   else
-    let logs = ref [] in
-    let ok = set_log_custom ~level:`Trace () in
+    let count = ref 0 in
+    let _drain_logs =
+      set_log_custom ~level:`Trace (fun s ->
+          incr count;
+          print_string s)
+    in
     let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
     let plugin = Plugin.of_manifest manifest |> Error.unwrap in
     let _ =
       Plugin.call Type.string Type.string plugin ~name:"count_vowels"
         "this is a test"
     in
-    let () = drain_logs (fun line -> logs := line :: !logs) in
-    let () = Printf.printf "%d\n" (List.length !logs) in
-    let () = List.iter print_string !logs in
-    ok && List.length !logs > 0
+    (** Make sure logs are drained when drain_logs is garbage collected *)
+    Gc.minor ();
+    Gc.full_major ();
+    !count > 0
