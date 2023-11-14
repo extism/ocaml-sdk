@@ -425,11 +425,13 @@ val set_log_file :
 (** Set the log file and level for all Extism plugins, the names [stdout] or
     [stderr] can be used to write to the terminal *)
 
-val set_log_callback :
-  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] ->
-  (string -> unit) ->
-  bool
-(** Set the log level and callback function *)
+val set_log_custom :
+  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] -> unit -> bool
+(** Set the log level and enable buffered logging. Logs can be accessed using
+    {!drain_logs} *)
+
+val drain_logs : (string -> unit) -> unit
+(** Drain buffered logs *)
 
 (** Extism error type *)
 module Error : sig
