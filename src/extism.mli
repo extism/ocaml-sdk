@@ -421,14 +421,16 @@ module Plugin : sig
 end
 
 val set_log_file :
-  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] -> string -> bool
+  ?level:[ `Error | `Warn | `Info | `Debug | `Trace | `Filter of string ] ->
+  string ->
+  bool
 (** Set the log file and level for all Extism plugins, the names [stdout] or
     [stderr] can be used to write to the terminal *)
 
 type drain_logs = unit -> unit
 
 val set_log_custom :
-  ?level:[ `Error | `Warn | `Info | `Debug | `Trace ] ->
+  ?level:[ `Error | `Warn | `Info | `Debug | `Trace | `Filter of string ] ->
   (string -> unit) ->
   drain_logs
 (** Set the log level and enable buffered logging. Returns a function that can

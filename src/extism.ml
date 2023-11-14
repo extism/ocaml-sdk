@@ -36,7 +36,8 @@ let parse_level =
     | `Warn -> "warn"
     | `Info -> "info"
     | `Debug -> "debug"
-    | `Trace -> "trace")
+    | `Trace -> "trace"
+    | `Filter f -> f)
 
 let set_log_file ?level filename =
   Bindings.extism_log_file filename (parse_level level)
