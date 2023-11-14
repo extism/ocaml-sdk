@@ -48,7 +48,7 @@ let set_log_callback ?level f =
   let fx s length =
     f @@ Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length)
   in
-  Bindings.extism_log_callback (parse_level level) fx
+  Bindings.extism_log_callback fx (parse_level level)
 
 let%test _ =
   let log_file =
