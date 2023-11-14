@@ -43,29 +43,17 @@ let set_log_file ?level filename =
 
 type drain_logs = unit -> unit
 
+let mk_drain_logs f () =
+  let fx s length =
+    let s = Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length) in
+    f s
+  in
+  Bindings.extism_log_drain fx
+
 let set_log_custom ?level f =
   if Bindings.extism_log_custom (parse_level level) then
-    let x () =
-      let fx s length =
-        let s =
-          Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length)
-        in
-        f s
-      in
-      Bindings.extism_log_drain fx
-    in
-    let () =
-      Gc.finalise_last
-        (fun () ->
-          let fx s length =
-            let s =
-              Ctypes.string_from_ptr s ~length:(Ctypes.Uintptr.to_int length)
-            in
-            f s
-          in
-          Bindings.extism_log_drain fx)
-        x
-    in
+    let x = mk_drain_logs f in
+    let () = Gc.finalise_last (mk_drain_logs f) x in
     x
   else Error.throw (`Msg "Unable to set custom logging")
 
@@ -88,7 +76,7 @@ let%test _ =
       Plugin.call Type.string Type.string plugin ~name:"count_vowels"
         "this is a test"
     in
-    (** Make sure logs are drained when drain_logs is garbage collected *)
+    (* Make sure logs are drained when drain_logs is garbage collected *)
     Gc.minor ();
     Gc.full_major ();
     !count > 0
