@@ -66,7 +66,7 @@ let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
   for _ = 0 to loop do
     print_timing ~time ("call to " ^ func_name) @@ fun () ->
     match Plugin.call_string plugin ~name:func_name input with
-    | Ok res -> print_endline res
+    | Ok res -> if String.length res > 0 then print_endline res
     | Error (`Msg e) ->
         Printf.eprintf "ERROR call encountered an error: %s" e;
         exit 2
