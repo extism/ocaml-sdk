@@ -150,5 +150,5 @@ let main_t =
     $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi $ stdin
     $ time)
 
-let cmd = Cmd.v (Cmd.info "extism-run") main_t
+let cmd = Cmd.v (Cmd.info "extism-call") main_t
 let () = exit (Cmd.eval cmd)
