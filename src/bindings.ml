@@ -181,3 +181,5 @@ let extism_plugin_cancel =
   fn "extism_plugin_cancel" (ptr void @-> returning bool)
 
 let extism_plugin_id = fn "extism_plugin_id" (ptr void @-> returning (ptr char))
+
+let extism_plugin_reset = fn "extism_plugin_reset" (ptr void @-> returning bool)
