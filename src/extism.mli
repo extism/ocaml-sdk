@@ -403,6 +403,9 @@ module Plugin : sig
   (** Free a plugin immediately, this isn't normally required unless there are a
       lot of plugins open at once *)
 
+  val reset : t -> bool
+  (** Reset the Extism runtime, this will invalidate all allocated memory *)
+
   val function_exists : t -> string -> bool
   (** Check if a function is exported by a plugin *)
 
