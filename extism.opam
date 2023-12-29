@@ -21,6 +21,7 @@ depends: [
   "cmdliner" {>= "1.1.1"}
   "uuidm" {>= "0.9.0"}
   "mdx" {>= "2.3.0" & with-test}
+  "hmap" {>= "0.8.0"}
   "odoc" {with-doc}
 ]
 build: [

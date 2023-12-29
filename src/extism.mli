@@ -421,6 +421,46 @@ module Plugin : sig
 
   val id : t -> Uuidm.t
   (** Get the plugin UUID *)
+
+  (** Typed plugins allow for plugin functions to be check at initialization and called with static types *)
+  module Typed : sig
+
+    (** Defines the interface for typed plugins *)
+    module type S = sig
+      type plugin := t
+
+
+      type t
+      (** Opaque typed plugin type *)
+
+      val of_plugin : plugin -> (t, Error.t) result
+      (** Load an instance of a typed plugin, returning a result *)
+
+      val of_plugin_exn : plugin -> t
+      (** Load an instance of a typed plugin, raising an exception if an error occurs *)
+
+      val fn :
+        string ->
+        (module Type.S with type t = 'a) ->
+        (module Type.S with type t = 'b) ->
+        t ->
+        'a ->
+        ('b, Error.t) result
+      (** Declare a function that returns a result type *)
+
+      val fn_exn :
+        string ->
+        (module Type.S with type t = 'a) ->
+        (module Type.S with type t = 'b) ->
+        t ->
+        'a ->
+        'b
+      (** Declare a function that raises an exception when it fails *)
+    end
+
+    (** Initialize a new typed plugin module *)
+    module Init () : S
+  end
 end
 
 val set_log_file :

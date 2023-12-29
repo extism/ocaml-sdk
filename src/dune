@@ -3,7 +3,7 @@
  (public_name extism)
  (inline_tests
   (deps test/code.wasm test/code-functions.wasm test/loop.wasm))
- (libraries ctypes.foreign bigstringaf extism-manifest uuidm)
+ (libraries ctypes.foreign bigstringaf extism-manifest uuidm hmap)
  (preprocess
   (pps ppx_yojson_conv ppx_inline_test)))
 

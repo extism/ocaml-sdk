@@ -204,5 +204,93 @@ let id { pointer; _ } =
     let s = Ctypes.string_from_ptr id ~length:16 in
     Uuidm.unsafe_of_bytes s
 
-let reset { pointer; _ } =
-  Bindings.extism_plugin_reset pointer
+let reset { pointer; _ } = Bindings.extism_plugin_reset pointer
+
+type plugin = t
+
+module Typed = struct
+  module FMap = Hmap.Make (struct
+    type 'a t = string
+  end)
+
+  module type S = sig
+    type t
+
+    val of_plugin : plugin -> (t, Error.t) result
+    val of_plugin_exn : plugin -> t
+
+    val fn :
+      string ->
+      (module Type.S with type t = 'a) ->
+      (module Type.S with type t = 'b) ->
+      t ->
+      'a ->
+      ('b, Error.t) result
+
+    val fn_exn :
+      string ->
+      (module Type.S with type t = 'a) ->
+      (module Type.S with type t = 'b) ->
+      t ->
+      'a ->
+      'b
+  end
+
+  type typed = { mutable functions : FMap.t; mutable sealed : bool }
+
+  module Init () : S = struct
+    type nonrec t = t
+
+    let state = { functions = FMap.empty; sealed = false }
+
+    let fn name params results =
+      if state.sealed then invalid_arg "Typed function has already been sealed";
+      let key = FMap.Key.create name in
+      state.functions <-
+        FMap.add key (call params results ~name) state.functions;
+      fun plugin params ->
+        let f = FMap.get key state.functions in
+        f plugin params
+
+    let fn_exn name params results =
+      if state.sealed then invalid_arg "Typed function has already been sealed";
+      let key = FMap.Key.create name in
+      state.functions <-
+        FMap.add key (call_exn params results ~name) state.functions;
+      fun plugin params ->
+        let f = FMap.get key state.functions in
+        f plugin params
+
+    let finish () = state.sealed <- true
+
+    let of_plugin_exn plugin =
+      finish ();
+      FMap.iter
+        (fun (FMap.B (k, _)) ->
+          let name = FMap.Key.info k in
+          if not (function_exists plugin name) then
+            Error.throw (`Msg ("invalid plugin function: " ^ name)))
+        state.functions;
+      plugin
+
+    let of_plugin plugin =
+      finish ();
+      match of_plugin_exn plugin with
+      | exception Error.Error e -> Error e
+      | x -> Ok x
+  end
+end
+
+let%test "typed" =
+  let module Test = struct
+    include Typed.Init ()
+
+    let count_vowels = fn_exn "count_vowels" Type.string Type.json
+  end in
+  let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
+  let plugin = of_manifest manifest |> Error.unwrap in
+  let t = Test.of_plugin_exn plugin in
+  let res = Test.count_vowels t "aaa" in
+  let n = Yojson.Safe.Util.member "count" res |> Yojson.Safe.Util.to_number in
+  Printf.printf "count = %f\n" n;
+  n = 3.0
