@@ -209,9 +209,7 @@ let reset { pointer; _ } = Bindings.extism_plugin_reset pointer
 type plugin = t
 
 module Typed = struct
-  module FMap = Hmap.Make (struct
-    type 'a t = string
-  end)
+  module Functions = Set.Make (String)
 
   module type S = sig
     type t
@@ -236,38 +234,31 @@ module Typed = struct
       'b
   end
 
-  type typed = { mutable functions : FMap.t; mutable sealed : bool }
+  type typed = { mutable functions : Functions.t; mutable sealed : bool }
 
   module Init () : S = struct
     type nonrec t = t
 
-    let state = { functions = FMap.empty; sealed = false }
+    let state = { functions = Functions.empty; sealed = false }
 
     let fn name params results =
       if state.sealed then invalid_arg "Typed function has already been sealed";
-      let key = FMap.Key.create name in
-      state.functions <-
-        FMap.add key (call params results ~name) state.functions;
-      fun plugin params ->
-        let f = FMap.get key state.functions in
-        f plugin params
+      state.functions <- Functions.add name state.functions;
+      let f = call params results ~name in
+      fun plugin params -> f plugin params
 
     let fn_exn name params results =
       if state.sealed then invalid_arg "Typed function has already been sealed";
-      let key = FMap.Key.create name in
-      state.functions <-
-        FMap.add key (call_exn params results ~name) state.functions;
-      fun plugin params ->
-        let f = FMap.get key state.functions in
-        f plugin params
+      state.functions <- Functions.add name state.functions;
+      let f = call_exn params results ~name in
+      fun plugin params -> f plugin params
 
     let finish () = state.sealed <- true
 
     let of_plugin_exn plugin =
       finish ();
-      FMap.iter
-        (fun (FMap.B (k, _)) ->
-          let name = FMap.Key.info k in
+      Functions.iter
+        (fun name ->
           if not (function_exists plugin name) then
             Error.throw (`Msg ("invalid plugin function: " ^ name)))
         state.functions;
