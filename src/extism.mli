@@ -30,6 +30,28 @@
         print_endline res
     ]}
 
+    Using the typed plugin interface you can pre-define plug-in functions:
+    {@ocaml[
+      open Extism
+
+      module Example = struct
+        include Plugin.Typed.Init ()
+
+        let count_vowels = fn_exn "count_vowels" Type.string Type.string
+      end
+
+      let () =
+        let plugin =
+          Example.of_plugin_exn
+          @@ Plugin.of_manifest_exn
+          @@ Manifest.create [ Manifest.Wasm.file "test/code.wasm" ]
+        in
+        let res =
+          Example.count_vowels "input data"
+        in
+        print_endline res
+    ]}
+
     {1 API} *)
 
 module Manifest = Extism_manifest
@@ -69,7 +91,7 @@ module Val_type : sig
 
   val of_int : int -> t
   (** Convert from [int] to {!t},
-      @raise Invalid_argument if the integer isn't valid *)
+      raises Invalid_argument if the integer isn't valid *)
 
   val to_int : t -> int
   (** Convert from {!t} to [int] *)
@@ -429,7 +451,6 @@ module Plugin : sig
     module type S = sig
       type plugin := t
 
-
       type t
       (** Opaque typed plugin type *)
 
@@ -446,7 +467,7 @@ module Plugin : sig
         t ->
         'a ->
         ('b, Error.t) result
-      (** Declare a function that returns a result type *)
+      (** Pre-declare a function that returns a result type *)
 
       val fn_exn :
         string ->
@@ -455,11 +476,11 @@ module Plugin : sig
         t ->
         'a ->
         'b
-      (** Declare a function that raises an exception when it fails *)
+      (** Pre-declare a function that raises an exception when it fails *)
     end
 
-    (** Initialize a new typed plugin module *)
     module Init () : S
+    (** Initialize a new typed plugin module *)
   end
 end
 

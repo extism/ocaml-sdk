@@ -82,6 +82,26 @@ convert it directly to `Yojson.Safe.t`:
 
 See [Extism.Type.S](https://extism.github.io/ocaml-sdk/extism/Extism/Type/module-type-S/index.html) to define your own input/output types.
 
+### Typed Plugins
+
+Plug-ins can also use pre-defined functions using `Plugin.Typed`:
+
+```ocaml
+module Example = struct
+  include Plugin.Typed.Init ()
+
+  let count_vowels = fn_exn "count_vowels" Type.string Type.json
+end
+```
+
+This can then be initialized using an existing `Plugin.t`:
+
+```ocaml
+let example = Example.of_plugin_exn plugin in
+let res = Example.count_vowels example "this is a test" in
+print_endline (Yojson.Safe.to_string res)
+```
+
 ### Plug-in State
 
 Plug-ins may be stateful or stateless. Plug-ins can maintain state b/w calls by the use of variables. Our count vowels plug-in remembers the total number of vowels it's ever counted in the "total" key in the result. You can see this by making subsequent calls to the export:
