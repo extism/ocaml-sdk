@@ -47,7 +47,7 @@
           @@ Manifest.create [ Manifest.Wasm.file "test/code.wasm" ]
         in
         let res =
-          Example.count_vowels "input data"
+          Example.count_vowels plugin "input data"
         in
         print_endline res
     ]}
