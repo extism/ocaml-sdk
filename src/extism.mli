@@ -37,7 +37,7 @@
       module Example = struct
         include Plugin.Typed.Init ()
 
-        let count_vowels = fn_exn "count_vowels" Type.string Type.string
+        let count_vowels = exn @@ fn "count_vowels" Type.string Type.string
       end
 
       let () =
@@ -469,14 +469,8 @@ module Plugin : sig
         ('b, Error.t) result
       (** Pre-declare a function that returns a result type *)
 
-      val fn_exn :
-        string ->
-        (module Type.S with type t = 'a) ->
-        (module Type.S with type t = 'b) ->
-        t ->
-        'a ->
-        'b
-      (** Pre-declare a function that raises an exception when it fails *)
+      val exn : (t -> 'a -> ('b, Error.t) result) -> (t -> 'a -> 'b)
+      (** Convert a pre-declared function to raise an exception instead of a result type *)
     end
 
     module Init () : S

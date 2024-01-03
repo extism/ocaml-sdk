@@ -90,7 +90,7 @@ Plug-ins can also use pre-defined functions using `Plugin.Typed`:
 module Example = struct
   include Plugin.Typed.Init ()
 
-  let count_vowels = fn_exn "count_vowels" Type.string Type.json
+  let count_vowels = exn @@ fn "count_vowels" Type.string Type.json
 end
 ```
 

@@ -6,7 +6,7 @@ let url =
 module Typed_example = struct
   include Plugin.Typed.Init ()
 
-  let count_vowels = fn_exn "count_vowels" Type.string Type.json
+  let count_vowels = exn @@ fn "count_vowels" Type.string Type.json
 end
 
 let () =

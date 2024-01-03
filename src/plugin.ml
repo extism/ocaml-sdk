@@ -225,13 +225,7 @@ module Typed = struct
       'a ->
       ('b, Error.t) result
 
-    val fn_exn :
-      string ->
-      (module Type.S with type t = 'a) ->
-      (module Type.S with type t = 'b) ->
-      t ->
-      'a ->
-      'b
+    val exn : (t -> 'a -> ('b, Error.t) result) -> t -> 'a -> 'b
   end
 
   type typed = { mutable functions : Functions.t; mutable sealed : bool }
@@ -247,12 +241,7 @@ module Typed = struct
       let f = call params results ~name in
       fun plugin params -> f plugin params
 
-    let fn_exn name params results =
-      if state.sealed then invalid_arg "Typed function has already been sealed";
-      state.functions <- Functions.add name state.functions;
-      let f = call_exn params results ~name in
-      fun plugin params -> f plugin params
-
+    let exn f (t : t) x = Error.unwrap (f t x)
     let finish () = state.sealed <- true
 
     let of_plugin_exn plugin =
@@ -276,7 +265,7 @@ let%test "typed" =
   let module Test = struct
     include Typed.Init ()
 
-    let count_vowels = fn_exn "count_vowels" Type.string Type.json
+    let count_vowels = exn @@ fn "count_vowels" Type.string Type.json
   end in
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
   let plugin = of_manifest manifest |> Error.unwrap in
