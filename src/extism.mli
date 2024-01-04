@@ -30,6 +30,28 @@
         print_endline res
     ]}
 
+    Using the typed plugin interface you can pre-define plug-in functions:
+    {@ocaml[
+      open Extism
+
+      module Example = struct
+        include Plugin.Typed.Init ()
+
+        let count_vowels = exn @@ fn "count_vowels" Type.string Type.string
+      end
+
+      let () =
+        let plugin =
+          Example.of_plugin_exn
+          @@ Plugin.of_manifest_exn
+          @@ Manifest.create [ Manifest.Wasm.file "test/code.wasm" ]
+        in
+        let res =
+          Example.count_vowels plugin "input data"
+        in
+        print_endline res
+    ]}
+
     {1 API} *)
 
 module Manifest = Extism_manifest
@@ -69,7 +91,7 @@ module Val_type : sig
 
   val of_int : int -> t
   (** Convert from [int] to {!t},
-      @raise Invalid_argument if the integer isn't valid *)
+      raises Invalid_argument if the integer isn't valid *)
 
   val to_int : t -> int
   (** Convert from {!t} to [int] *)
@@ -421,6 +443,39 @@ module Plugin : sig
 
   val id : t -> Uuidm.t
   (** Get the plugin UUID *)
+
+  (** Typed plugins allow for plugin functions to be check at initialization and called with static types *)
+  module Typed : sig
+
+    (** Defines the interface for typed plugins *)
+    module type S = sig
+      type plugin := t
+
+      type t
+      (** Opaque typed plugin type *)
+
+      val of_plugin : plugin -> (t, Error.t) result
+      (** Load an instance of a typed plugin, returning a result *)
+
+      val of_plugin_exn : plugin -> t
+      (** Load an instance of a typed plugin, raising an exception if an error occurs *)
+
+      val fn :
+        string ->
+        (module Type.S with type t = 'a) ->
+        (module Type.S with type t = 'b) ->
+        t ->
+        'a ->
+        ('b, Error.t) result
+      (** Pre-declare a function that returns a result type *)
+
+      val exn : (t -> 'a -> ('b, Error.t) result) -> (t -> 'a -> 'b)
+      (** Convert a pre-declared function to raise an exception instead of a result type *)
+    end
+
+    module Init () : S
+    (** Initialize a new typed plugin module *)
+  end
 end
 
 val set_log_file :
