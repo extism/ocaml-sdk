@@ -9,5 +9,6 @@
 
 (mdx
  (libraries extism-manifest extism yojson)
+ (package extism)
  (deps test/code.wasm)
  (files :standard - *.mli))
