@@ -5,6 +5,14 @@ type t = {
   mutable pointer : unit ptr;
   mutable user_data : unit ptr;
   name : string;
+  closure :
+    unit ptr ->
+    Val.t ptr ->
+    Unsigned.uint64 ->
+    Val.t ptr ->
+    Unsigned.uint64 ->
+    unit ptr ->
+    unit;
 }
 
 let free t =
@@ -41,7 +49,9 @@ let create name ?namespace ~params ~results ~user_data f =
   let () =
     Option.iter (Bindings.extism_function_set_namespace pointer) namespace
   in
-  let t = { pointer; user_data; name; free_lock = Mutex.create () } in
+  let t =
+    { pointer; user_data; name; free_lock = Mutex.create (); closure = f }
+  in
   Gc.finalise_last (fun () -> free t) t;
   t
 
