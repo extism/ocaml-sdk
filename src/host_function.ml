@@ -36,7 +36,8 @@ module Memory_handle = struct
 
   let of_val_exn t v =
     match of_val t v with
-    | None -> invalid_arg "Memory_block.of_val_exn"
+    | None ->
+        { offs = Unsigned.UInt64.of_int 0; len = Unsigned.UInt64.of_int 0 }
     | Some v -> v
 
   let to_val { offs; len = _ } = Val.of_i64 (Unsigned.UInt64.to_int64 offs)
