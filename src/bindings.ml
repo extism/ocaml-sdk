@@ -35,8 +35,8 @@ let locate () =
         exit n
       in
       match Sys.getenv_opt "EXTISM_TEST_NO_LIB" with
-      | None -> fail 1
-      | Some _ -> fail 0)
+      | Some "1" -> fail 0
+      | _ -> fail 1)
 
 let from =
   let filename = locate () in
@@ -181,5 +181,4 @@ let extism_plugin_cancel =
   fn "extism_plugin_cancel" (ptr void @-> returning bool)
 
 let extism_plugin_id = fn "extism_plugin_id" (ptr void @-> returning (ptr char))
-
 let extism_plugin_reset = fn "extism_plugin_reset" (ptr void @-> returning bool)

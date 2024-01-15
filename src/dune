@@ -11,4 +11,5 @@
  (libraries extism-manifest extism yojson)
  (package extism)
  (deps test/code.wasm)
+ (enabled_if (not (= %{env:EXTISM_TEST_NO_LIB=} "1")))
  (files :standard - *.mli))

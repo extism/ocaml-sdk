@@ -38,5 +38,5 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/extism/ocaml-sdk.git"
-build-env: [EXTISM_TEST_NO_LIB = ""]
+build-env: [EXTISM_TEST_NO_LIB = "1"]
 post-messages: ["See https://extism.org/docs/install/ for information about installing libextism"]

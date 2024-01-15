@@ -3,4 +3,5 @@
 (mdx
  (package extism)
  (libraries extism-manifest extism yojson)
+ (enabled_if (not (= %{env:EXTISM_TEST_NO_LIB=} "1")))
  (deps wasm/code.wasm))
