@@ -58,6 +58,7 @@ let create ?config ?(wasi = false) ?(functions = []) wasm =
     Error (`Msg s)
   else
     let t = { pointer; functions; free_lock = Mutex.create () } in
+    let () = Bindings.set_managed pointer t in
     let () = Gc.finalise_last (fun () -> free t) t in
     if not (set_config t config) then Error (`Msg "call to set_config failed")
     else Ok t

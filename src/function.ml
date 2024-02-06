@@ -52,6 +52,7 @@ let create name ?namespace ~params ~results ~user_data f =
   let t =
     { pointer; user_data; name; free_lock = Mutex.create (); closure = f }
   in
+  Bindings.set_managed pointer t;
   Gc.finalise_last (fun () -> free t) t;
   t
 

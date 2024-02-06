@@ -182,3 +182,8 @@ let extism_plugin_cancel =
 
 let extism_plugin_id = fn "extism_plugin_id" (ptr void @-> returning (ptr char))
 let extism_plugin_reset = fn "extism_plugin_reset" (ptr void @-> returning bool)
+
+let set_managed pointer t =
+  match pointer with
+  | Ctypes_static.CPointer pointer ->
+      Ctypes_ptr.Fat.set_managed pointer (Some (Obj.repr t))
