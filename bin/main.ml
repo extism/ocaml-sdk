@@ -29,11 +29,13 @@ let print_timing ~time name f =
     out
 
 let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
-    memory_max log_level log_file wasi stdin time =
+    memory_max http_max log_level log_file wasi stdin time =
   let input = if stdin then read_stdin () else input in
   let allowed_paths = split_allowed_paths allowed_paths in
   let config = split_config config in
-  let memory = Manifest.{ max_pages = memory_max } in
+  let memory =
+    Manifest.{ max_pages = memory_max; max_http_response_bytes = http_max }
+  in
   let manifest =
     print_timing ~time "loaded manifest" @@ fun () ->
     try
@@ -92,6 +94,13 @@ let memory_max =
   let doc = "Max number of memory pages." in
   Arg.(value & opt (some int) None & info [ "memory-max" ] ~docv:"PAGES" ~doc)
 
+let http_max =
+  let doc = "Max number of bytes allowed in an HTTP response." in
+  Arg.(
+    value
+    & opt (some int) None
+    & info [ "http-response-max" ] ~docv:"BYTES" ~doc)
+
 let timeout =
   let doc = "Plugin timeout in milliseconds." in
   Arg.(value & opt int 30000 & info [ "timeout"; "t" ] ~docv:"MILLIS" ~doc)
@@ -147,8 +156,8 @@ let time =
 let main_t =
   Term.(
     const main $ file $ func_name $ input $ loop $ timeout $ allowed_paths
-    $ allowed_hosts $ config $ memory_max $ log_level $ log_file $ wasi $ stdin
-    $ time)
+    $ allowed_hosts $ config $ memory_max $ http_max $ log_level $ log_file
+    $ wasi $ stdin $ time)
 
 let cmd = Cmd.v (Cmd.info "extism-call") main_t
 let () = exit (Cmd.eval cmd)
