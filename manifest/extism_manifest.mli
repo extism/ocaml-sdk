@@ -25,8 +25,11 @@
 
 type memory_options = {
   max_pages : int option;
-      (** [max_pages] can be used to limit the total number of pages used by the
-          runtime *)
+  (** [max_pages] can be used to limit the total number of pages used by the
+      runtime *)
+  max_http_response_bytes: int option;
+  (** [max_http_response_bytes] can be used to limit the size of the response returned by
+      [extism_http_request] *)
 }
 [@@deriving yojson]
 (** Memory options *)
@@ -128,4 +131,7 @@ val with_config : config -> t -> t
 (** Returns a new {!t} with the [config] field updated *)
 
 val with_memory_max : int -> t -> t
-(** Returns a new {!t} with [memory.max_pages] updates *)
+(** Returns a new {!t} with [memory.max_pages] updated *)
+
+val with_http_response_max_bytes : int -> t -> t
+(** Returns a new {!t} with [memory.max_http_response_bytes] updated *)

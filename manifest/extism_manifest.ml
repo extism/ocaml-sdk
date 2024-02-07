@@ -5,7 +5,10 @@ type base64 = string
 let yojson_of_base64 x = `String (Base64.encode_exn x)
 let base64_of_yojson j = Yojson.Safe.Util.to_string j
 
-type memory_options = { max_pages : int option [@yojson.option] }
+type memory_options = {
+  max_pages : int option; [@yojson.option]
+  max_http_response_bytes : int option; [@yojson.option]
+}
 [@@deriving yojson]
 
 type dict = (string * string) list
@@ -98,11 +101,29 @@ let of_file filename =
   t_of_yojson j
 
 let with_config config t = { t with config = Some config }
-let with_memory_max max t = { t with memory = Some { max_pages = Some max } }
+
+let with_memory_max max t =
+  match t.memory with
+  | None ->
+      {
+        t with
+        memory = Some { max_http_response_bytes = None; max_pages = Some max };
+      }
+  | Some m -> { t with memory = Some { m with max_pages = Some max } }
+
+let with_http_response_max_bytes max t =
+  match t.memory with
+  | None ->
+      {
+        t with
+        memory = Some { max_http_response_bytes = Some max; max_pages = None };
+      }
+  | Some m ->
+      { t with memory = Some { m with max_http_response_bytes = Some max } }
 
 let%test "rountrip" =
   let config = [ ("a", Some "b"); ("b", Some "c") ] in
-  let memory = { max_pages = Some 5 } in
+  let memory = { max_pages = Some 5; max_http_response_bytes = Some 9999 } in
   let t =
     create ~config ~memory ~allowed_hosts:[ "example.com" ]
       ~allowed_paths:[ ("a", "b") ]
