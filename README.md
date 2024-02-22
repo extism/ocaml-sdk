@@ -27,7 +27,7 @@ If you're generating an opam file using dune then add `extism` to your `dune-pro
 ```
 (package
  (depends
-  (extism (>= 1.0.0))))
+  (extism (>= 1.1.0))))
 ```
 
 Installing the `extism` package on opam will also install the `extism-call` executable, which can be used
