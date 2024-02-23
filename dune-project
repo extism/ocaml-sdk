@@ -26,6 +26,7 @@
   dune
   (ctypes (>= 0.22.0))
   (ctypes-foreign (>= 0.22.0))
+  (integers (>= 0.3.0))
   (bigstringaf (>= 0.9.0))
   (ppx_yojson_conv (>= v0.15.0))
   (extism-manifest (= :version))
