@@ -24,8 +24,8 @@
  (depends 
   (ocaml (>= 4.14.1)) 
   dune
-  (ctypes (>= 0.18.0))
-  (ctypes-foreign (>= 0.18.0))
+  (ctypes (>= 0.22.0))
+  (ctypes-foreign (>= 0.22.0))
   (bigstringaf (>= 0.9.0))
   (ppx_yojson_conv (>= v0.15.0))
   (extism-manifest (= :version))
