@@ -30,6 +30,8 @@ type memory_options = {
   max_http_response_bytes: int option;
   (** [max_http_response_bytes] can be used to limit the size of the response returned by
       [extism_http_request] *)
+  max_var_bytes: int option;
+  (** [max_var_bytes] can be used to limit the size of the Extism var store *)
 }
 [@@deriving yojson]
 (** Memory options *)
@@ -135,3 +137,6 @@ val with_memory_max : int -> t -> t
 
 val with_http_response_max_bytes : int -> t -> t
 (** Returns a new {!t} with [memory.max_http_response_bytes] updated *)
+
+val with_var_max_bytes : int -> t -> t
+(** Returns a new {!t} with [memory.max_var_bytes] updated *)

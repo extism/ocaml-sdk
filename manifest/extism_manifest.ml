@@ -8,6 +8,7 @@ let base64_of_yojson j = Yojson.Safe.Util.to_string j
 type memory_options = {
   max_pages : int option; [@yojson.option]
   max_http_response_bytes : int option; [@yojson.option]
+  max_var_bytes : int option; [@yojson.option]
 }
 [@@deriving yojson]
 
@@ -107,7 +108,13 @@ let with_memory_max max t =
   | None ->
       {
         t with
-        memory = Some { max_http_response_bytes = None; max_pages = Some max };
+        memory =
+          Some
+            {
+              max_http_response_bytes = None;
+              max_pages = Some max;
+              max_var_bytes = None;
+            };
       }
   | Some m -> { t with memory = Some { m with max_pages = Some max } }
 
@@ -116,14 +123,42 @@ let with_http_response_max_bytes max t =
   | None ->
       {
         t with
-        memory = Some { max_http_response_bytes = Some max; max_pages = None };
+        memory =
+          Some
+            {
+              max_http_response_bytes = Some max;
+              max_pages = None;
+              max_var_bytes = None;
+            };
+      }
+  | Some m ->
+      { t with memory = Some { m with max_http_response_bytes = Some max } }
+
+let with_var_max_bytes max t =
+  match t.memory with
+  | None ->
+      {
+        t with
+        memory =
+          Some
+            {
+              max_var_bytes = Some max;
+              max_pages = None;
+              max_http_response_bytes = None;
+            };
       }
   | Some m ->
       { t with memory = Some { m with max_http_response_bytes = Some max } }
 
 let%test "rountrip" =
   let config = [ ("a", Some "b"); ("b", Some "c") ] in
-  let memory = { max_pages = Some 5; max_http_response_bytes = Some 9999 } in
+  let memory =
+    {
+      max_pages = Some 5;
+      max_http_response_bytes = Some 9999;
+      max_var_bytes = Some 12300;
+    }
+  in
   let t =
     create ~config ~memory ~allowed_hosts:[ "example.com" ]
       ~allowed_paths:[ ("a", "b") ]
