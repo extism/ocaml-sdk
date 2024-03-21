@@ -515,3 +515,18 @@ val with_plugin : (Plugin.t -> 'a) -> Plugin.t -> 'a
 
 val extism_version : unit -> string
 (** Returns the libextism version, not the version of the OCaml library *)
+
+module Pool : sig
+  type 'a t
+  module Instance : sig
+    type t
+    val plugin: t -> Plugin.t
+    val free: t -> unit
+    val use: t -> (Plugin.t -> 'a) -> 'a
+  end
+  val create: int -> 'a t
+  val add: 'a t -> 'a -> (unit -> Plugin.t) -> unit
+  val count: 'a t -> 'a -> int
+  val get_opt: 'a t -> 'a -> Instance.t option
+  val get : ?timeout:float -> 'a t -> 'a -> Instance.t
+end
