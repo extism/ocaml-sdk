@@ -206,14 +206,16 @@ module Pool = struct
         Plugin.of_manifest manifest |> Error.unwrap);
     let total = Atomic.make 0 in
     let run n =
-      Domain.spawn (fun () ->
-          Unix.sleepf n;
+      Thread.create
+        (fun () ->
+          Thread.delay n;
           let a = get pool "test" in
           Instance.use a @@ fun plugin ->
           ignore (Plugin.call_string_exn plugin ~name:"count_vowels" "input");
           Atomic.incr total)
+        ()
     in
     let all = [ run 1.0; run 1.0; run 0.5; run 0.5; run 0.0 ] in
-    let () = List.iter Domain.join all in
+    let () = List.iter Thread.join all in
     Atomic.get total = List.length all && count pool "test" <= 2
 end
