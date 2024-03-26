@@ -1,10 +1,10 @@
 (executables
- (names runner kv typed)
+ (names runner kv typed pool)
  (libraries extism))
 
 (alias
  (name examples)
- (deps runner.exe kv.exe typed.exe))
+ (deps runner.exe kv.exe typed.exe pool.exe))
 
 (alias
  (name runtest)
