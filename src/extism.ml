@@ -110,6 +110,7 @@ module Pool = struct
       match x.plugin with
       | Some plugin ->
           x.plugin <- None;
+          ignore (Plugin.reset plugin);
           Mutex.protect x.q.lock @@ fun () -> Queue.push plugin x.q.q
       | None -> ()
 
