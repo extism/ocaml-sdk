@@ -29,7 +29,8 @@ let print_timing ~time name f =
     out
 
 let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
-    memory_max http_max var_max log_level log_file wasi stdin time _manifest =
+    memory_max http_max var_max log_level log_file wasi stdin time _manifest
+    link =
   let input = if stdin then read_stdin () else input in
   let allowed_paths = split_allowed_paths allowed_paths in
   let config = split_config config in
@@ -41,21 +42,57 @@ let main file func_name input loop timeout_ms allowed_paths allowed_hosts config
         max_var_bytes = var_max;
       }
   in
+  let wasm_init =
+    split_config link
+    |> List.map (fun (k, v) ->
+           let v = Option.value ~default:k v in
+           if
+             String.starts_with file ~prefix:"http://"
+             || String.starts_with file ~prefix:"https://"
+           then
+             Manifest.(
+               Wasm.Url
+                 {
+                   url = v;
+                   hash = None;
+                   name = Some k;
+                   meth = Some "GET";
+                   headers = None;
+                 })
+           else Manifest.(Wasm.File { path = v; hash = None; name = Some k }))
+  in
   let manifest =
     print_timing ~time "loaded manifest" @@ fun () ->
     try
       let m = Manifest.of_file file in
-      {
-        m with
-        timeout_ms = Some timeout_ms;
-        allowed_hosts = Some allowed_hosts;
-        allowed_paths = Some allowed_paths;
-        config = Some config;
-        memory = Some memory;
-      }
+      Manifest.
+        {
+          wasm = wasm_init @ m.wasm;
+          timeout_ms = Some timeout_ms;
+          allowed_hosts = Some allowed_hosts;
+          allowed_paths = Some allowed_paths;
+          config = Some config;
+          memory = Some memory;
+        }
     with _ ->
+      let f =
+        if
+          String.starts_with file ~prefix:"http://"
+          || String.starts_with file ~prefix:"https://"
+        then
+          Manifest.(
+            Wasm.Url
+              {
+                url = file;
+                hash = None;
+                name = None;
+                meth = Some "GET";
+                headers = None;
+              })
+        else Manifest.(Wasm.File { path = file; hash = None; name = None })
+      in
       Manifest.create ~timeout_ms ~allowed_hosts ~allowed_paths ~config ~memory
-        [ Manifest.(Wasm.File { path = file; hash = None; name = None }) ]
+        (wasm_init @ [ f ])
   in
   let () =
     match (log_level, log_file) with
@@ -128,6 +165,12 @@ let config =
   let doc = "Plugin config." in
   Arg.(value & opt_all string [] & info [ "config" ] ~docv:"KEY=VALUE" ~doc)
 
+let link =
+  let doc = "Plugins to link at runtime" in
+  Arg.(
+    value & opt_all string []
+    & info [ "link" ] ~docv:"MODULE_NAME=FILENAME" ~doc)
+
 let log_file =
   let doc = "File to write logs to." in
   Arg.(
@@ -170,7 +213,7 @@ let main_t =
   Term.(
     const main $ file $ func_name $ input $ loop $ timeout $ allowed_paths
     $ allowed_hosts $ config $ memory_max $ http_max $ var_max $ log_level
-    $ log_file $ wasi $ stdin $ time $ manifest)
+    $ log_file $ wasi $ stdin $ time $ manifest $ link)
 
 let cmd = Cmd.v (Cmd.info "extism-call") main_t
 let () = exit (Cmd.eval cmd)
