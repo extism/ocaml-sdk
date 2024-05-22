@@ -115,6 +115,15 @@ let extism_plugin_call_s =
   fn "extism_plugin_call"
     (plugin @-> string @-> string @-> uint64_t @-> returning int32_t)
 
+  
+let extism_plugin_call_with_host_context =
+  fn "extism_plugin_call_with_host_context"
+    (plugin @-> string @-> ptr char @-> uint64_t @-> ptr void @-> returning int32_t)
+
+let extism_plugin_call_with_host_context_s =
+  fn "extism_plugin_call_with_host_context"
+    (plugin @-> string @-> string @-> uint64_t @-> ptr void @-> returning int32_t)
+
 let extism_error = fn "extism_plugin_error" (plugin @-> returning string_opt)
 
 let extism_plugin_output_length =
@@ -158,6 +167,9 @@ let extism_function_set_namespace =
 
 let extism_function_free =
   fn "extism_function_free" (ptr void @-> returning void)
+
+let extism_current_plugin_host_context =
+  fn "extism_current_plugin_host_context" (ptr void @-> returning (ptr void))
 
 let extism_current_plugin_memory =
   fn "extism_current_plugin_memory" (ptr void @-> returning (ptr uint8_t))
