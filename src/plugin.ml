@@ -83,8 +83,9 @@ let call' f { pointer; _ } ~name input len =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else
     let rc = f pointer name input len in
-    if rc <> 0l then
-      match Bindings.extism_error pointer with
+    let err = Bindings.extism_error pointer in
+    if rc <> 0l || Option.is_some err then
+      match err with
       | None -> Error (`Msg "extism_plugin_call failed")
       | Some msg -> Error (`Msg msg)
     else
