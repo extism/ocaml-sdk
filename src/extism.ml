@@ -81,3 +81,142 @@ let%test _ =
     Gc.minor ();
     Gc.full_major ();
     !count > 0
+
+module Pool = struct
+  exception Timeout
+
+  type queue = {
+    mutable count : int Atomic.t;
+    q : Plugin.t Queue.t;
+    lock : Mutex.t;
+  }
+
+  type 'a t = {
+    lock : Mutex.t;
+    max_instances : int;
+    plugins : ('a, unit -> Plugin.t) Hashtbl.t;
+    instances : ('a, queue) Hashtbl.t;
+  }
+
+  module Instance = struct
+    type t = { mutable plugin : Plugin.t option; q : queue }
+
+    let plugin { plugin; _ } =
+      match plugin with
+      | Some p -> p
+      | None -> invalid_arg "plugin instance has already been freed"
+
+    let free x =
+      match x.plugin with
+      | Some plugin ->
+          x.plugin <- None;
+          ignore (Plugin.reset plugin);
+          Mutex.protect x.q.lock @@ fun () -> Queue.push plugin x.q.q
+      | None -> ()
+
+    let use t f =
+      Fun.protect ~finally:(fun () -> free t) (fun () -> f (plugin t))
+  end
+
+  let create n =
+    {
+      lock = Mutex.create ();
+      max_instances = n;
+      plugins = Hashtbl.create 8;
+      instances = Hashtbl.create 8;
+    }
+
+  let add t name f =
+    Mutex.protect t.lock @@ fun () ->
+    Hashtbl.replace t.plugins name f;
+    Hashtbl.replace t.instances name
+    @@ { q = Queue.create (); count = Atomic.make 0; lock = Mutex.create () }
+
+  let count t name =
+    let instance = Hashtbl.find t.instances name in
+    Atomic.get instance.count
+
+  let get_opt t name =
+    let q = Hashtbl.find t.instances name in
+    Mutex.protect q.lock @@ fun () ->
+    let mk plugin =
+      let x = { Instance.plugin = Some plugin; q } in
+      Gc.finalise
+        (fun x ->
+          match x.Instance.plugin with
+          | Some plugin ->
+              x.plugin <- None;
+              Mutex.protect q.lock @@ fun () -> Queue.push plugin q.q
+          | None -> ())
+        x;
+      x
+    in
+    match Queue.take_opt q.q with
+    | Some x -> Some (mk x)
+    | None ->
+        let f = Hashtbl.find t.plugins name in
+        if Atomic.get q.count < t.max_instances then
+          let () = Atomic.incr q.count in
+          Some (mk @@ f ())
+        else None
+
+  let get ?timeout t name =
+    let rec aux start =
+      match get_opt t name with
+      | Some x -> x
+      | None when Option.is_some timeout ->
+          let curr = Unix.gettimeofday () in
+          if curr -. start >= Option.get timeout then raise Timeout
+          else aux start
+      | None -> aux start
+    in
+    aux @@ Unix.gettimeofday ()
+
+  let%test "pool timeout" =
+    let pool = create 3 in
+    add pool "test" (fun () ->
+        let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
+        Plugin.of_manifest manifest |> Error.unwrap);
+    let _a = get pool "test" in
+    let _b = get pool "test" in
+    let _c = get pool "test" in
+    try
+      let _ = get ~timeout:1.0 pool "test" in
+      false
+    with Timeout -> count pool "test" = 3
+
+  let%test "pool timeout" =
+    let pool = create 2 in
+    add pool "test" (fun () ->
+        let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
+        Plugin.of_manifest manifest |> Error.unwrap);
+    let a = get pool "test" in
+    let () = Instance.free a in
+    let b = get pool "test" in
+    let () = Instance.free b in
+    let _c = get pool "test" in
+    try
+      let _ = get ~timeout:0.0 pool "test" in
+      count pool "test" = 2
+    with Timeout -> false
+
+  let%test "pool threads" =
+    let pool = create 2 in
+    add pool "test" (fun () ->
+        let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
+        Plugin.of_manifest manifest |> Error.unwrap);
+    let total = Atomic.make 0 in
+    let run n =
+      Thread.create
+        (fun () ->
+          Thread.delay n;
+          let a = get pool "test" in
+          Instance.use a @@ fun plugin ->
+          ignore (Plugin.call_string_exn plugin ~name:"count_vowels" "input");
+          Atomic.incr total)
+        ()
+    in
+    let all = [ run 1.0; run 1.0; run 0.5; run 0.5; run 0.0 ] in
+    let () = List.iter Thread.join all in
+    Atomic.get total = List.length all && count pool "test" <= 2
+end

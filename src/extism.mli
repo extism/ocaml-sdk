@@ -515,3 +515,47 @@ val with_plugin : (Plugin.t -> 'a) -> Plugin.t -> 'a
 
 val extism_version : unit -> string
 (** Returns the libextism version, not the version of the OCaml library *)
+
+(** The [Pool] module defines an interface for pooling a fixed number of
+    multiple plugins *)
+module Pool : sig
+  type 'a t
+  (** ['a Pool.t] is a pool with keys of type ['a] *)
+
+  exception Timeout
+  (** Raised when [get] encounters a timeout *)
+
+  (** [Instance] is used to store active instances of a plugin in a pool *)
+  module Instance : sig
+    type t
+    (** The instance type *)
+
+    val plugin: t -> Plugin.t
+    (** Get the inner plugin, this should not be stored anywhere separate from the [Instance.t] *)
+
+    val free: t -> unit
+    (** Return the instance back to the pool *)
+
+    val use: t -> (Plugin.t -> 'a) -> 'a
+    (** [use instance f] calls the function [f] with the instance's plugin, then calls [free] to return
+        the instance back to the pool *)
+  end
+
+  val create: int -> 'a t
+  (** [create n] makes a new [Pool.t] that allows at most [n] instances of each plugin *)
+
+  val add: 'a t -> 'a -> (unit -> Plugin.t) -> unit
+  (** [add pool key f] associates a plugin initialization function, [f], with the given [key] *)
+
+  val count: 'a t -> 'a -> int
+  (** [count pool key] get the current active instance count for [key] *)
+
+  val get_opt: 'a t -> 'a -> Instance.t option
+  (** [get_opt pool key] attempts to get an active instance for [key], returning [None] if they are
+      all in use *)
+
+  val get : ?timeout:float -> 'a t -> 'a -> Instance.t
+  (** [get ?timeout pool key] blocks until an active instance is available, or if the timeout is reached.
+      This will raise `Timeout` if [timeout] seconds have passed.
+   *)
+end
