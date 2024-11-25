@@ -204,7 +204,7 @@ let id { pointer; _ } =
   else
     let id = Bindings.extism_plugin_id pointer in
     let s = Ctypes.string_from_ptr id ~length:16 in
-    Uuidm.unsafe_of_bytes s
+    Uuidm.unsafe_of_binary_string s
 
 let reset { pointer; _ } = Bindings.extism_plugin_reset pointer
 
