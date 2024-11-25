@@ -98,6 +98,26 @@ let call' f { pointer; _ } ~name input len =
       in
       Ok buf
 
+let call_with_host_context' f { pointer; _ } ~name input len ctx =
+  if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
+  else
+    let root = Ctypes.Root.create ctx in
+    let rc = f pointer name input len root in
+    let err = Bindings.extism_error pointer in
+    if rc <> 0l || Option.is_some err then
+      match err with
+      | None -> Error (`Msg "extism_plugin_call failed")
+      | Some msg -> Error (`Msg msg)
+    else
+      let out_len = Bindings.extism_plugin_output_length pointer in
+      let ptr = Bindings.extism_plugin_output_data pointer in
+      let buf =
+        Ctypes.bigarray_of_ptr Ctypes.array1
+          (Unsigned.UInt64.to_int out_len)
+          Char ptr
+      in
+      Ok buf
+
 let call_bigstring (t : t) ~name input =
   let len = Unsigned.UInt64.of_int (Bigstringaf.length input) in
   let ptr = Ctypes.bigarray_start Ctypes.array1 input in
@@ -134,6 +154,23 @@ let call (type a b) (module In : Type.S with type t = a)
   | Error e -> Error e
 
 let call_exn a b t ~name input = call a b t ~name input |> Error.unwrap
+
+let call_with_host_context (type a b) (module In : Type.S with type t = a)
+    (module Out : Type.S with type t = b) t ~ctx ~name (a : a) :
+    (b, Error.t) result =
+  let input = In.encode a in
+  let len = String.length input in
+  match
+    call_with_host_context' Bindings.extism_plugin_call_s_with_host_context t
+      ~name input
+      (Unsigned.UInt64.of_int len)
+      ctx
+  with
+  | Ok x -> Out.decode x
+  | Error e -> Error e
+
+let call_with_host_context_exn a b t ~ctx ~name input =
+  call_with_host_context a b t ~ctx ~name input |> Error.unwrap
 
 let%test "call" =
   let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in

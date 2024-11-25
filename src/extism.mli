@@ -296,6 +296,9 @@ module Host_function : sig
   val output : (module Type.S with type t = 'a) -> ?index:int -> t -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
+  val host_context : t -> 'a option
+  (** Get configured host context *)
+
   (** Some helpter functions for reading/writing memory *)
   module Memory_handle : sig
     val memory : ?offs:Unsigned.UInt64.t -> t -> Unsigned.uint8 Ctypes.ptr
@@ -420,6 +423,28 @@ module Plugin : sig
     'a ->
     'b
   (** Similar to {!call} but raises an exception using {!Error.unwrap} *)
+
+  
+  val call_with_host_context :
+    (module Type.S with type t = 'a) ->
+    (module Type.S with type t = 'b) ->
+    t ->
+    ctx: 'c ->
+    name:string ->
+    'a ->
+    ('b, Error.t) result
+  (** [call_with_host_context input_type output_type t ~ctx ~name input] executes a function with input
+      and output types defined in {!Type} *)
+
+  val call_with_host_context_exn :
+    (module Type.S with type t = 'a) ->
+    (module Type.S with type t = 'b) ->
+    t ->
+    ctx:'c ->
+    name:string ->
+    'a ->
+    'b
+  (** Similar to {!call_with_host_context} but raises an exception using {!Error.unwrap} *)
 
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a
