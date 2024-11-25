@@ -476,6 +476,43 @@ module Plugin : sig
     module Init () : S
     (** Initialize a new typed plugin module *)
   end
+
+  module Compiled : sig
+    type t
+
+    val free : t -> unit
+
+    val create :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      string ->
+      (t, Error.t) result
+    (** Make a new compiled plugin from raw WebAssembly or JSON encoded manifest *)
+
+    val create_exn :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      string ->
+      t
+    (** Make a new compiled plugin from raw WebAssembly or JSON encoded manifest *)
+
+    val of_manifest :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      Manifest.t ->
+      (t, Error.t) result
+    (** Make a new compiled plugin from a {!Manifest} *)
+
+    val of_manifest_exn :
+      ?wasi:bool -> ?functions:Function.t list -> Manifest.t -> t
+    (** Make a new compiled plugin from a {!Manifest} *)
+  end
+
+  val of_compiled: ?config:Manifest.config -> Compiled.t -> (t, Error.t) result
+  (** Make a new plugin from an existing {!Compiled} *)
+
+  val of_compiled_exn: ?config:Manifest.config -> Compiled.t -> t
+  (** Make a new plugin from an existing {!Compiled} *)
 end
 
 val set_log_file :

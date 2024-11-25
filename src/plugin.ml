@@ -276,3 +276,75 @@ let%test "typed" =
   let n = Yojson.Safe.Util.member "count" res |> Yojson.Safe.Util.to_number in
   Printf.printf "count = %f\n" n;
   n = 3.0
+
+module Compiled = struct
+  type t = {
+    free_lock : Mutex.t;
+    mutable pointer : unit Ctypes.ptr;
+    mutable functions : Function.t list;
+  }
+
+  let free t =
+    let () = Mutex.lock t.free_lock in
+    Fun.protect
+      ~finally:(fun () -> Mutex.unlock t.free_lock)
+      (fun () ->
+        if not (Ctypes.is_null t.pointer) then
+          let () = Bindings.extism_compiled_plugin_free t.pointer in
+          t.pointer <- Ctypes.null)
+
+  let create ?(wasi = false) ?(functions = []) wasm =
+    let func_ptrs = List.map (fun x -> x.Function.pointer) functions in
+    let arr = Ctypes.CArray.of_list Ctypes.(ptr void) func_ptrs in
+    let n_funcs = Ctypes.CArray.length arr in
+    let errmsg =
+      Ctypes.(allocate (ptr char) (coerce (ptr void) (ptr char) null))
+    in
+    let pointer =
+      Bindings.extism_compiled_plugin_new wasm
+        (Unsigned.UInt64.of_int (String.length wasm))
+        (Ctypes.CArray.start arr)
+        (Unsigned.UInt64.of_int n_funcs)
+        wasi errmsg
+    in
+    if Ctypes.is_null pointer then
+      let s = get_errmsg (Ctypes.( !@ ) errmsg) in
+      Error (`Msg s)
+    else
+      let t = { pointer; functions; free_lock = Mutex.create () } in
+      let () = Bindings.set_managed pointer t in
+      let () = Gc.finalise_last (fun () -> free t) t in
+      Ok t
+
+  let create_exn ?wasi ?functions wasm =
+    create ?wasi ?functions wasm |> Error.unwrap
+
+  let of_manifest ?wasi ?functions manifest =
+    let data = Manifest.to_json manifest in
+    create ?wasi ?functions data
+
+  let of_manifest_exn ?wasi ?functions manifest =
+    of_manifest ?wasi ?functions manifest |> Error.unwrap
+end
+
+let of_compiled ?config compiled =
+  let errmsg =
+    Ctypes.(allocate (ptr char) (coerce (ptr void) (ptr char) null))
+  in
+  let pointer =
+    Bindings.extism_plugin_new_from_compiled compiled.Compiled.pointer errmsg
+  in
+  if Ctypes.is_null pointer then
+    let s = get_errmsg (Ctypes.( !@ ) errmsg) in
+    Error (`Msg s)
+  else
+    let t =
+      { pointer; functions = compiled.functions; free_lock = Mutex.create () }
+    in
+    let () = Bindings.set_managed pointer t in
+    let () = Gc.finalise_last (fun () -> free t) t in
+    if not (set_config t config) then Error (`Msg "call to set_config failed")
+    else Ok t
+
+let of_compiled_exn ?config compiled =
+  of_compiled ?config compiled |> Error.unwrap
