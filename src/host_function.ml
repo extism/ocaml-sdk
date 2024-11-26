@@ -103,3 +103,7 @@ let input (type a) (module C : Type.S with type t = a) ?index t =
   C.decode bs
 
 let input_exn a ?index t = input a ?index t |> Error.unwrap
+
+let host_context t =
+  let ptr = Bindings.extism_current_plugin_host_context t.pointer in
+  if Ctypes.is_null ptr then None else Some (Ctypes.Root.get ptr)

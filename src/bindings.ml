@@ -92,9 +92,18 @@ module Extism_val = struct
 end
 
 let plugin = ptr void
+let compiled_plugin = ptr void
 
 let extism_plugin_new_error_free =
   fn "extism_plugin_new_error_free" (ptr char @-> returning void)
+
+let extism_compiled_plugin_new =
+  fn "extism_compiled_plugin_new"
+    (string @-> uint64_t
+    @-> ptr (ptr void)
+    @-> uint64_t @-> bool
+    @-> ptr (ptr char)
+    @-> returning compiled_plugin)
 
 let extism_plugin_new =
   fn "extism_plugin_new"
@@ -103,6 +112,10 @@ let extism_plugin_new =
     @-> uint64_t @-> bool
     @-> ptr (ptr char)
     @-> returning plugin)
+
+let extism_plugin_new_from_compiled =
+  fn "extism_plugin_new_from_compiled"
+    (compiled_plugin @-> ptr (ptr char) @-> returning plugin)
 
 let extism_plugin_config =
   fn "extism_plugin_config" (plugin @-> string @-> uint64_t @-> returning bool)
@@ -114,6 +127,19 @@ let extism_plugin_call =
 let extism_plugin_call_s =
   fn "extism_plugin_call"
     (plugin @-> string @-> string @-> uint64_t @-> returning int32_t)
+
+let extism_current_plugin_host_context =
+  fn "extism_current_plugin_host_context" (ptr void @-> returning (ptr void))
+
+let extism_plugin_call_with_host_contet =
+  fn "extism_plugin_call_with_host_context"
+    (plugin @-> string @-> ptr char @-> uint64_t @-> ptr void
+   @-> returning int32_t)
+
+let extism_plugin_call_s_with_host_context =
+  fn "extism_plugin_call_with_host_context"
+    (plugin @-> string @-> string @-> uint64_t @-> ptr void
+   @-> returning int32_t)
 
 let extism_error = fn "extism_plugin_error" (plugin @-> returning string_opt)
 
@@ -135,6 +161,9 @@ let log_callback =
 let extism_log_drain = fn "extism_log_drain" (log_callback @-> returning void)
 let extism_version = fn "extism_version" (void @-> returning string)
 let extism_plugin_free = fn "extism_plugin_free" (plugin @-> returning void)
+
+let extism_compiled_plugin_free =
+  fn "extism_compiled_plugin_free" (compiled_plugin @-> returning void)
 
 let extism_plugin_function_exists =
   fn "extism_plugin_function_exists" (plugin @-> string @-> returning bool)

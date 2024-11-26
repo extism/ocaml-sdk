@@ -296,6 +296,9 @@ module Host_function : sig
   val output : (module Type.S with type t = 'a) -> ?index:int -> t -> 'a -> unit
   (** Convert a value, allocate it and update the results array at [index] *)
 
+  val host_context : t -> 'a option
+  (** Get configured host context *)
+
   (** Some helpter functions for reading/writing memory *)
   module Memory_handle : sig
     val memory : ?offs:Unsigned.UInt64.t -> t -> Unsigned.uint8 Ctypes.ptr
@@ -421,6 +424,28 @@ module Plugin : sig
     'b
   (** Similar to {!call} but raises an exception using {!Error.unwrap} *)
 
+  
+  val call_with_host_context :
+    (module Type.S with type t = 'a) ->
+    (module Type.S with type t = 'b) ->
+    t ->
+    ctx: 'c ->
+    name:string ->
+    'a ->
+    ('b, Error.t) result
+  (** [call_with_host_context input_type output_type t ~ctx ~name input] executes a function with input
+      and output types defined in {!Type} *)
+
+  val call_with_host_context_exn :
+    (module Type.S with type t = 'a) ->
+    (module Type.S with type t = 'b) ->
+    t ->
+    ctx:'c ->
+    name:string ->
+    'a ->
+    'b
+  (** Similar to {!call_with_host_context} but raises an exception using {!Error.unwrap} *)
+
   val free : t -> unit
   (** Free a plugin immediately, this isn't normally required unless there are a
       lot of plugins open at once *)
@@ -476,6 +501,43 @@ module Plugin : sig
     module Init () : S
     (** Initialize a new typed plugin module *)
   end
+
+  module Compiled : sig
+    type t
+
+    val free : t -> unit
+
+    val create :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      string ->
+      (t, Error.t) result
+    (** Make a new compiled plugin from raw WebAssembly or JSON encoded manifest *)
+
+    val create_exn :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      string ->
+      t
+    (** Make a new compiled plugin from raw WebAssembly or JSON encoded manifest *)
+
+    val of_manifest :
+      ?wasi:bool ->
+      ?functions:Function.t list ->
+      Manifest.t ->
+      (t, Error.t) result
+    (** Make a new compiled plugin from a {!Manifest} *)
+
+    val of_manifest_exn :
+      ?wasi:bool -> ?functions:Function.t list -> Manifest.t -> t
+    (** Make a new compiled plugin from a {!Manifest} *)
+  end
+
+  val of_compiled: ?config:Manifest.config -> Compiled.t -> (t, Error.t) result
+  (** Make a new plugin from an existing {!Compiled} *)
+
+  val of_compiled_exn: ?config:Manifest.config -> Compiled.t -> t
+  (** Make a new plugin from an existing {!Compiled} *)
 end
 
 val set_log_file :

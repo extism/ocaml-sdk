@@ -32,7 +32,7 @@
   (extism-manifest (= :version))
   (ppx_inline_test (>= v0.15.0))
   (cmdliner (>= 1.1.1))
-  (uuidm (>= 0.9.8))
+  (uuidm (>= 0.9.9))
   (mdx (and (>= 2.3.0) :with-test))
  )
  (tags
