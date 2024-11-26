@@ -201,6 +201,28 @@ let%test "call_functions" =
   Gc.full_major ();
   b
 
+let%test "call_functions_context" =
+  let open Val_type in
+  let hello_world =
+    Function.create "hello_world" ~params:[ I64 ] ~results:[ I64 ]
+      ~user_data:"Hello again!"
+    @@ fun plugin _user_data ->
+    let ctx = Host_function.host_context plugin in
+    let () = print_endline @@ Option.get ctx in
+    Host_function.output Type.json plugin (`Assoc [ ("count", `Int 999) ])
+  in
+  let functions = [ hello_world ] in
+  let manifest = Manifest.(create [ Wasm.file "test/code-functions.wasm" ]) in
+  let plugin = of_manifest manifest ~functions ~wasi:true |> Error.unwrap in
+  let b =
+    call_with_host_context Type.string Type.string plugin ~name:"count_vowels"
+      "this is a test" ~ctx:"host context"
+    |> Error.unwrap = "{\"count\":999}"
+  in
+  Gc.minor ();
+  Gc.full_major ();
+  b
+
 let function_exists { pointer; _ } name =
   if Ctypes.is_null pointer then Error.throw (`Msg "Plugin already freed")
   else Bindings.extism_plugin_function_exists pointer name

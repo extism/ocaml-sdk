@@ -93,3 +93,15 @@ let%test _ =
   Gc.minor ();
   Gc.full_major ();
   true
+
+let%test _ =
+  let manifest = Manifest.(create [ Wasm.file "test/code.wasm" ]) in
+  let compiled = Plugin.Compiled.of_manifest_exn manifest in
+  let plugin = Plugin.of_compiled_exn compiled in
+  let _ =
+    Plugin.call Type.string Type.string plugin ~name:"count_vowels"
+      "this is a test"
+  in
+  Gc.minor ();
+  Gc.full_major ();
+  true
