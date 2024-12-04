@@ -5,7 +5,7 @@ description: "Bindings to the Extism manifest format"
 maintainer: ["Extism Authors <oss@extism.org>"]
 authors: ["Extism Authors <oss@extism.org>"]
 license: "BSD-3-Clause"
-tags: ["topics" "wasm" "plugin"]
+tags: ["wasm" "plugin"]
 homepage: "https://github.com/extism/ocaml-sdk"
 doc: "https://github.com/extism/ocaml-sdk"
 bug-reports: "https://github.com/extism/ocaml-sdk/issues"

@@ -36,7 +36,7 @@
   (mdx (and (>= 2.3.0) :with-test))
  )
  (tags
-  (topics wasm plugin)))
+  (wasm plugin)))
 
 (package
  (name extism-manifest)
@@ -50,4 +50,4 @@
   (base64 (>= 3.5.0))
  )
  (tags
-  (topics wasm plugin)))
+  (wasm plugin)))
